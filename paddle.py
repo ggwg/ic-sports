@@ -154,12 +154,12 @@ class App(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Testing")
-        size_ratio = 1.5
+        size_ratio = 0.5
         self.disply_width = 640 * size_ratio
         self.display_height = 480 * size_ratio
         
         # Placeholder
-        self.placeholder = self.convert_cv_qt(cv2.imread('placeholder.png'))  
+        self.placeholder = self.convert_cv_qt(cv2.imread('fox.jpeg'))  
 
         # Create the label that holds the image
         self.image_label = QLabel(self)
@@ -171,7 +171,7 @@ class App(QWidget):
 
         # Button to pause and resume video
         self.capture_button = QPushButton(self)
-        self.capture_button.setText('Start')
+        self.capture_button.setText('Start Capture')
         self.capture_button.resize(300, 100)
         self.capture_button.clicked.connect(self.captureToggle)
         self.capturing = False
@@ -205,7 +205,7 @@ class App(QWidget):
             return
 
         self.thread = VideoThread()
-        # self.thread.change_pixmap_signal.connect(self.update_image)
+        self.thread.change_pixmap_signal.connect(self.update_image)
         self.thread.finished.connect(self.paused)
         self.thread.start()
         self.capture_button.setText('Pause Capture')
