@@ -7,4 +7,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Running
+
+Development of main app is currently in paddle.py
+
+```
+python3 paddle.py
+```
+
+Tony's code is in /ltw directory.
+
+```
+python3 ltw/ball_motion_pseudo_code.py
+```
+
+Old code is in /old_cv_project directory.
+
 # ic-sports
