@@ -2,6 +2,8 @@ from enum import Enum
 import cv2
 import numpy as np
 from math import (sqrt)
+import os
+
 
 class Side(Enum):
     A = 0
@@ -35,7 +37,12 @@ def loop():
     ball = Ball(100, 100, 10)
     ball.dz = 0.1
     while True:
-        background = np.zeros((500, 500, 3), np.uint8)
+        dirname = os.path.dirname(__file__)
+        filename = os.path.join(dirname, 'background_place_holder.jpg')
+        print(filename)
+        background = cv2.imread(filename)
+        background = cv2.resize(background, (500, 500))
+        # background = np.zeros((500, 500, 3), np.uint8)
         radius = 3 * sqrt(abs(ball.y)) + 2 * ball.z
         image = draw(ball.x, ball.y, ball.z, radius, (255, 255, 255), background)
         print(ball.x, ball.y, ball.z, ball.dx, ball.dy, ball.dz)
