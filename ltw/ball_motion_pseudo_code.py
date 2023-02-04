@@ -40,16 +40,17 @@ def draw(x, y, z, radius, color, background):
         image = cv2.circle(background, (int(x), int(y)), int(radius), color, -1)
         return alpha_composite(image, net_image)
 
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, 'background_place_holder.jpg')
+print(filename)
+background = cv2.imread(filename)
+background = cv2.resize(background, (500, 500))
+
 # naturally fall down
 def loop():
     ball = Ball(100, 100, 10)
     ball.dz = 0.1
     while True:
-        dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, 'background_place_holder.jpg')
-        print(filename)
-        background = cv2.imread(filename)
-        background = cv2.resize(background, (500, 500))
         # background = np.zeros((500, 500, 3), np.uint8)
         radius = 3 * sqrt(abs(ball.y)) + 2 * ball.z
         image = draw(ball.x, ball.y, ball.z, radius, (255, 255, 255), background)
