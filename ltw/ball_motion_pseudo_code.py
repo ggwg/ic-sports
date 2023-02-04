@@ -19,18 +19,26 @@ class Ball:
         self.dz = 0
         self.ddy = 0.01
 
-net_image = np.zeros((500, 500, 3), np.uint8)
-net_image[250:500, 0:500] = (100, 100, 100)
+net_image = np.zeros((500, 500, 4), np.uint8)
+net_image[250:500, 0:500] = (100, 100, 100, 128)
+
+def alpha_composite(background, foreground):
+    alpha = foreground[:, :, 3].astype(float) / 255.0
+
+    image = np.empty(background.shape)
+
+    for ch in range(3):
+        image[:, :, ch] = foreground[:, :, ch] * alpha + background[:, :, ch] * (1.0 - alpha)
+    image = image.astype(np.uint8)
+    return image
 
 def draw(x, y, z, radius, color, background):
     if z > 0:
-        background += net_image
+        background = alpha_composite(background, net_image)
         return cv2.circle(background, (int(x), int(y)), int(radius), color, -1)
     else:
         image = cv2.circle(background, (int(x), int(y)), int(radius), color, -1)
-        # overlay net image onto background
-        image = cv2.addWeighted(image,0.7,net_image,1.0,0)
-        return image
+        return alpha_composite(image, net_image)
 
 # naturally fall down
 def loop():
@@ -47,7 +55,7 @@ def loop():
         image = draw(ball.x, ball.y, ball.z, radius, (255, 255, 255), background)
         print(ball.x, ball.y, ball.z, ball.dx, ball.dy, ball.dz)
         cv2.imshow("background", image)
-        cv2.waitKey(10)
+        cv2.waitKey(20)
         ball.dy += ball.ddy
         ball.y += ball.dy
         ball.x += ball.dx
