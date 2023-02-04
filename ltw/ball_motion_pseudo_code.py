@@ -37,7 +37,7 @@ def draw(x, y, z, radius, color, background):
         background = alpha_composite(background, net_image)
         return cv2.circle(background, (int(x), int(y)), int(radius), color, -1)
     else:
-        image = cv2.circle(background, (int(x), int(y)), int(radius), color, -1)
+        image = cv2.circle(background.copy(), (int(x), int(y)), int(radius), color, -1)
         return alpha_composite(image, net_image)
 
 dirname = os.path.dirname(__file__)
