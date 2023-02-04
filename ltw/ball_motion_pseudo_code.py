@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from math import (sqrt)
 import os
+import random
 
 
 class Side(Enum):
@@ -45,15 +46,31 @@ def loop():
         # background = np.zeros((500, 500, 3), np.uint8)
         radius = 3 * sqrt(abs(ball.y)) + 2 * ball.z
         image = draw(ball.x, ball.y, ball.z, radius, (255, 255, 255), background)
-        print(ball.x, ball.y, ball.z, ball.dx, ball.dy, ball.dz)
+        # print(ball.x, ball.y, ball.z, ball.dx, ball.dy, ball.dz)
         cv2.imshow("background", image)
-        cv2.waitKey(10)
+        cv2.waitKey(1)
         ball.dy += ball.ddy
         ball.y += ball.dy
-        ball.x += ball.dx
+        if ball.y < 100:
+            pass
+        elif ball.y < 200:
+            ball.x += ball.dx
+        elif ball.y < 300:
+            ball.x += 2 * ball.dx
         ball.z += ball.dz
         if ball.y > 400:
             ball.dy = -ball.dy
+            if ball.x < 50:
+                ball.dx = 0.3
+            elif ball.x > 450:
+                ball.dx = -0.3
+            else:
+                ball.dx += random.random() * 0.6 - 0.3
+            if ball.dx >= 0.6:
+                ball.dx = 0.6
+            elif ball.dx <= -0.6:
+                ball.dx = -0.6
+
             ball.dz = -ball.dz
 
 
