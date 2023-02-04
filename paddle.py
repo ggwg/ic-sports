@@ -90,6 +90,13 @@ class VideoThread(QThread):
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 if results.multi_hand_landmarks:
+                    for hand_landmarks in results.multi_hand_landmarks:
+                        mp_drawing.draw_landmarks(
+                            image,
+                            hand_landmarks,
+                            mp_hands.HAND_CONNECTIONS,
+                            mp_drawing_styles.get_default_hand_landmarks_style(),
+                            mp_drawing_styles.get_default_hand_connections_style())
                     hand_landmarks = results.multi_hand_landmarks[-1]
                     index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                     thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
@@ -154,7 +161,7 @@ class App(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Testing")
-        size_ratio = 0.5
+        size_ratio = 1
         self.disply_width = 640 * size_ratio
         self.display_height = 480 * size_ratio
         
