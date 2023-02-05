@@ -119,7 +119,7 @@ async def main():
         remote = network.Server()
         clientOrServer = "server"
     
-    encoder = video.VideoEnc()
+    encoder = video.VideoEnc(is_server=(clientOrServer == "server"))
 
     if clientOrServer == "client":
         encoder.run()

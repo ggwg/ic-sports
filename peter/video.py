@@ -67,8 +67,9 @@ class Pipeline:
 
 
 class VideoEnc(Pipeline):
-    def __init__(self) -> None:
+    def __init__(self, is_server: bool = False) -> None:
         super().__init__()
+        self.is_server = is_server
         self.pipeline = Gst.parse_launch(
             f"appsrc name=src do-timestamp=1 is-live=1 max-buffers=2 ! video/x-raw,width={IMAGE_WIDTH},height={IMAGE_HEIGHT},format=BGR,framerate=30/1 ! videoconvert ! video/x-raw,format=I420 ! vtenc_h264_hw realtime=1 bitrate=2000 allow-frame-reordering=0 max-keyframe-interval=60 ! h264parse ! video/x-h264,alignment=au,stream-format=byte-stream ! appsink name=sink emit-signals=1 sync=0")
         
@@ -88,7 +89,7 @@ class VideoEnc(Pipeline):
         return Gst.FlowReturn.OK
     
     def write_raw(self, buf):
-        if self.is_stopped:
+        if self.is_stopped and self.is_server:
             return
         buf = Gst.Buffer.new_wrapped(buf.tobytes())
         self.src.emit("push-buffer", buf)
