@@ -1,6 +1,0 @@
-mediapipe-silicon
-opencv-python
-pynput
-screeninfo
-pyautogui
-pyside6-essentials
