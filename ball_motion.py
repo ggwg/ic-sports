@@ -6,6 +6,8 @@ import os
 import random
 from video import IMAGE_HEIGHT, IMAGE_WIDTH
 
+dirname = os.path.dirname(__file__)
+
 
 class Ball:
     def __init__(self, x, y, z, frame_height=IMAGE_HEIGHT, frame_width=IMAGE_WIDTH):
@@ -71,9 +73,10 @@ class Ball:
     def xyz(self) -> tuple:
         return (self.x, self.y, self.z)
 
-
+net_image_t =     cv2.imread(os.path.join(dirname, "assets/net.png"), cv2.IMREAD_UNCHANGED)
+net_image_t = cv2.resize(net_image_t, (IMAGE_WIDTH,IMAGE_HEIGHT // 2))
 net_image = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH, 4), np.uint8)
-net_image[IMAGE_HEIGHT // 2:IMAGE_HEIGHT, 0:IMAGE_WIDTH] = (100, 100, 100, 128)
+net_image[IMAGE_HEIGHT // 2:IMAGE_HEIGHT, 0:IMAGE_WIDTH] = net_image_t
 
 
 def alpha_composite(background, foreground):
@@ -106,7 +109,6 @@ def alpha_composite_position(background, foreground, position):
     return image
 
 
-dirname = os.path.dirname(__file__)
 
 # ball_image = cv2.imread(os.path.join(
 #     dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
