@@ -55,7 +55,7 @@ def alpha_composite_position(background, foreground, position):
 
 dirname = os.path.dirname(__file__)
 
-ball_image = cv2.imread(os.path.join(dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
+ball_image = cv2.imread(os.path.join(dirname, "ball.png"), cv2.IMREAD_UNCHANGED)
 head_image = cv2.imread(os.path.join(dirname, "asian.png"), cv2.IMREAD_UNCHANGED)
 
 def draw(x, y, z, head, background):
@@ -85,7 +85,7 @@ def draw(x, y, z, head, background):
     return background
 
 dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, 'background.jpeg')
+filename = os.path.join(dirname, 'beach.jpeg')
 print(filename)
 background = cv2.imread(filename)
 background = cv2.resize(background, (500, 500))
@@ -182,8 +182,8 @@ def loop(pose, mp_pose, cap):
                     results = pose.process(image)
 
                     if results.pose_landmarks:
-                        hand_x_history.append(500 - int(results.pose_landmarks.landmark[0].x * 400))
-                        hand_y_history.append(320 + int(results.pose_landmarks.landmark[0].y * 400))
+                        hand_x_history.append(550 - int(results.pose_landmarks.landmark[0].x * 600))
+                        hand_y_history.append(150 + int(results.pose_landmarks.landmark[0].y * 600))
                         
                         hand_x_history.pop(0)
                         hand_y_history.pop(0)
