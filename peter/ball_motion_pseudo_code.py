@@ -53,9 +53,11 @@ ball_image = cv2.imread(os.path.join(dirname, "beach_ball.png"), cv2.IMREAD_UNCH
 print(ball_image.shape)
 print(ball_image)
 
+def find_radius(z):
+    return 4000 / (-z + 50)
+
 def draw(x, y, z, background):
-    distance = -z + 50
-    radius = 4000 / distance
+    radius = find_radius(z)
     if z > 0:
         background = alpha_composite(background, net_image)
         ball_image_transfer = cv2.resize(ball_image, (int(radius * 2), int(radius * 2)))
@@ -86,26 +88,32 @@ def hit_back(ball):
     elif ball.x > 500:
         ball.dx = -0.2
     else:
-        ball.dx = random.random() * 0.6 - 0.3
+        ball.dx = random.random() * 1.5 - 0.75
 
 def update_ball_position(ball):
     ball.dy += ball.ddy
     ball.y +=  ball.dy
 
-    if ball.y < 100:
-        pass
-    elif ball.y < 200:
-        ball.x += ball.dx
-    elif ball.y < 300:
-        ball.x += 2 * ball.dx
+    if ball.x < 100:
+        ball.x += 0.5 * ball.dx
+    elif ball.x > 500:
+        ball.x += 0.5 * ball.dx
+    else:
+        if ball.y < 100:
+            pass
+        elif ball.y < 200:
+            ball.x += ball.dx
+        elif ball.y < 300:
+            ball.x += 2 * ball.dx
 
     ball.z += ball.dz
 
 
 
 def hitable(ball):
-    return ball.y > 375 and ball.z > 20 and ball.dz > 0
+    return ball.y > 350 and ball.z > 20 and ball.dz > 0
 
 def hand_meet_ball(ball, hand):
-    return sqrt((hand.x - ball.x) ** 2 + (hand.y - ball.y + 30) ** 2) < 200
+    radius = find_radius
+    return sqrt((hand.x - ball.x) ** 2 + (ball.y + radius - hand.y) ** 2) < 200
 

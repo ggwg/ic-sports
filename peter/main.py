@@ -7,7 +7,7 @@ import sys
 from contextlib import suppress
 from typing import Sequence
 from dataclasses import dataclass
-from ball_motion_pseudo_code import Ball, draw, update_ball_position, hit_back, hitable, hand_meet_ball
+from ball_motion_pseudo_code import Ball, draw, update_ball_position, hit_back, hitable, hand_meet_ball, find_radius
 import random
 import time
 
@@ -102,6 +102,27 @@ async def client_ctrl_loop(remote: network.Remote, ball):
         except Exception as e:
             print("Error in client ctrl loop:", e)
 
+async def server_logic_loop(ball, remote, hand):
+    while True:
+        try:
+            asyncio.sleep(0.01)
+            update_ball_position(ball)
+            asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
+            if hitable(ball) and hand_meet_ball(ball, hand):
+                hit_back(ball)
+        except Exception as e:
+            print("Error in server logic loop:", e)
+
+async def client_logic_loop(ball, remote, hand):
+    while True:
+        try:
+            asyncio.sleep(0.01)
+            ball.x, ball.y, ball.z = (await remote.recv_control()).values()
+            if hitable(ball) and hand_meet_ball(ball, hand):
+                hit_back(ball)
+                asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
+        except Exception as e:
+            print("Error in client logic loop:", e)
 
 
 @dataclass
@@ -143,25 +164,16 @@ async def main():
                 asyncio.create_task(local_postion_worker(frame_queue_2, hand))
                 if clientOrServer == "server":
                     asyncio.create_task(server_ctrl_loop(remote, ball))
+                    asyncio.create_task(server_logic_loop(ball, remote, hand))
                 else:
                     asyncio.create_task(client_ctrl_loop(remote, ball))
+                    asyncio.create_task(client_logic_loop(ball, remote, hand))
                 # asynio.create_task(remote_render_worker(decoder))
 
                 while True:
-                    print("$$$$$$$$$$$$$", time.time())
                     try:
-                        if clientOrServer == "server":
-                            update_ball_position(ball)
-                            asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
                         frame = await decoder.read_raw_async()
                         frame = cv2.flip(frame, 1)
-                        if hitable(ball) and hand_meet_ball(ball, hand):
-                        # if ball.y > 400:
-                            if clientOrServer == "server":
-                                hit_back(ball)
-                            else:
-                                hit_back(ball)
-                                asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
                         frame = draw(ball.x, ball.y, ball.z, frame)
                         print("ball pos: ", ball.x, ball.y, ball.z)
                         cv2.circle(frame, (int(hand.x), int(hand.y)), 10, (0, 0, 255), -1)
