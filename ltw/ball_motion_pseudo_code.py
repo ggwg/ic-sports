@@ -5,11 +5,6 @@ from math import (sqrt)
 import os
 import random
 
-
-class Side(Enum):
-    A = 0
-    B = 1
-
 class Ball:
     def __init__(self, x, y, z):
         self.x = x
