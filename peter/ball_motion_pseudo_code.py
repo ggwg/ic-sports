@@ -13,10 +13,10 @@ class Ball:
         self.dx = 0
         self.dy = 0
         self.dz = 0.5
-        self.ddy = 0.1
+        self.ddy = 0.12
 
 net_image = np.zeros((480, 640, 4), np.uint8)
-net_image[240:480, 0:640] = (100, 100, 100, 128)
+net_image[300:480, 0:640] = (100, 100, 100, 128)
 
 def alpha_composite(background, foreground):
     alpha = foreground[:, :, 3].astype(float) / 255.0
@@ -72,7 +72,7 @@ def draw(x, y, z, background):
 
 
 def hit_back(ball):
-    ball.dy = -5
+    ball.dy = -6
     ball.y = 400
     ball.dz = -0.5 if ball.dz > 0 else 0.5
     ball.z = 24 if ball.z > 0 else -24
