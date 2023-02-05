@@ -257,7 +257,7 @@ async def main(change_pixmap_signal):
             asyncio.create_task(frame_queue_tee(
                 capture, (frame_queue, frame_queue_2)))
             asyncio.create_task(local_position_worker(
-                frame_queue_2, hand, ball, remote, is_hand=True))
+                frame_queue_2, hand, ball, remote, is_hand=False))
             if client_or_server == "server":
                 asyncio.create_task(server_ctrl_loop(remote, ball))
                 asyncio.create_task(server_logic_loop(ball, remote, hand, score))
