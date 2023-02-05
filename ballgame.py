@@ -56,17 +56,12 @@ def alpha_composite_position(background, foreground, position):
 dirname = os.path.dirname(__file__)
 
 ball_image = cv2.imread(os.path.join(dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
-head_image = cv2.imread(os.path.join(dirname, "meta.png"), cv2.IMREAD_UNCHANGED)
+head_image = cv2.imread(os.path.join(dirname, "asian.png"), cv2.IMREAD_UNCHANGED)
 
 def draw(x, y, z, head, background):
     distance = -z + 50
     radius = 4000 / distance
     
-    head_image_transfer = cv2.resize(head_image, (int(radius * 2), int(radius * 2)))
-    new_head_image_x = max(head.x - radius, 0)
-    new_head_image_y = max(head.y - 2 * radius, 0)
-    background = alpha_composite_position(background, head_image_transfer, (int(new_head_image_y), int(new_head_image_x)))
-
     if z > 0:
         background = alpha_composite(background, net_image)
         ball_image_transfer = cv2.resize(ball_image, (int(radius * 2), int(radius * 2)))
@@ -82,10 +77,15 @@ def draw(x, y, z, head, background):
         background = alpha_composite(background, net_image)
 
    
+    head_image_transfer = cv2.resize(head_image, (150, 150))
+    new_head_image_x = max(head.x - radius, 0)
+    new_head_image_y = max(head.y - 2 * radius, 0)
+    background = alpha_composite_position(background, head_image_transfer, (int(new_head_image_y), int(new_head_image_x)))
+
     return background
 
 dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, 'beach.jpeg')
+filename = os.path.join(dirname, 'background.jpeg')
 print(filename)
 background = cv2.imread(filename)
 background = cv2.resize(background, (500, 500))
