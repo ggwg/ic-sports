@@ -7,8 +7,11 @@ import sys
 from contextlib import suppress
 from typing import Sequence
 from dataclasses import dataclass
-from ball_motion_pseudo_code import Ball, draw, update_ball_position, hit_back
+from ball_motion_pseudo_code import Ball, draw, update_ball_position, hit_back, hitable, hand_meet_ball
 import random
+
+import mediapipe as mp
+mp_pose = mp.solutions.pose
 
 async def h264_decode_worker(remote: network.Remote, decoder: video.VideoDec):
     while True:
@@ -122,7 +125,7 @@ async def main():
                         if clientOrServer == "server":
                             update_ball_position(ball)
                             await remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z})
-                            is_hit_back = await remote.get_control()["is_hit_back"]
+                            is_hit_back = (await remote.get_control())["is_hit_back"]
                             if is_hit_back:
                                 hit_back(ball)
                         else:
