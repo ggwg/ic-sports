@@ -74,7 +74,7 @@ async def local_position_worker(queue: asyncio.Queue, hand: Hand, ball: Ball, re
 
                 if results.pose_landmarks:
                     hand_x_history.append(
-                        640 - int(results.pose_landmarks.landmark[0].x * 400))
+                        640 - int(results.pose_landmarks.landmark[0].x * 700))
                     hand_y_history.append(
                         50 + int(results.pose_landmarks.landmark[0].y * 400))
 
