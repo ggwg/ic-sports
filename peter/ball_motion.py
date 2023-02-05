@@ -45,7 +45,7 @@ class Ball:
 
     @property
     def hitable(self):
-        return self.y > 350 and self.z > 20 and self.dz > 0
+        return self.y > 300 and self.z > 15 and self.dz > 0
 
     def hit_back(self):
         self.dy = -7
@@ -127,7 +127,7 @@ def draw(ball: Ball, background):
             color = (255, 0, 0)
         else:
             color = (255, 255, 255)
-        background = cv2.circle(background, (int(x), int(y)), 10, color, 1)
+        background = cv2.circle(background, (int(x), int(y)), 10, color, 0)
         return background
     else:
         ball_image_transfer = cv2.resize(
@@ -142,7 +142,7 @@ def draw(ball: Ball, background):
             color = (255, 0, 0)
         else:
             color = (255, 255, 255)
-        background = cv2.circle(background, (int(x), int(y)), 10, color, 1)
+        background = cv2.circle(background, (int(x), int(y)), 10, color, 0)
         return background
 
 
