@@ -30,7 +30,7 @@ class MainMenu(QMainWindow):
         image.resize(100, 100)
 
         # Create description
-        description = QLabel('This is a game about connecting with friends virtually over the internet. Click the start button to begin.', self)
+        description = QLabel('How to play: Opponents compete against each other to play volleyball with their head. Stay a distance of around 0.5m away from the screen, and move your head under the ball to hit the ball back to your opponent. Your opponent will gain a point if you let the ball drop!', self)
         description.setAlignment(Qt.AlignCenter)
         # description.setWordWrap(True)
         description.setMaximumWidth(500)
