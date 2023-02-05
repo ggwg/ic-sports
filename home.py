@@ -24,7 +24,7 @@ class MainMenu(QMainWindow):
         # Create image
         # loading image
         image = QLabel(self)
-        pixmap = QPixmap('beach_ball.png').scaledToWidth(200)
+        pixmap = QPixmap('assets/beach_ball.png').scaledToWidth(200)
         # adding image to label
         image.setPixmap(pixmap)
         image.resize(100, 100)
