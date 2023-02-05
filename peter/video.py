@@ -17,6 +17,9 @@ IMAGE_WIDTH = 640
 IMAGE_HEIGHT = 480
 
 class Pipeline:
+    def __init__(self) -> None:
+        self.is_playing = False
+
     def __gst_loop(self):
         bus = self.pipeline.get_bus()
         while True:
@@ -36,6 +39,11 @@ class Pipeline:
             elif msg.type == Gst.MessageType.STATE_CHANGED:
                 if isinstance(msg.src, Gst.Pipeline):
                     old_state, new_state, pending_state = msg.parse_state_changed()
+                    if new_state == Gst.State.PLAYING:
+                        self.is_playing = True
+                    else:
+                        self.is_playing = False
+
                     print(("Pipeline state changed from %s to %s." %
                         (old_state.value_nick, new_state.value_nick)))
                     if old_state == Gst.State.READY and new_state == Gst.State.NULL:
@@ -60,8 +68,9 @@ class Pipeline:
 
 class VideoEnc(Pipeline):
     def __init__(self) -> None:
+        super().__init__()
         self.pipeline = Gst.parse_launch(
-            f"appsrc name=src do-timestamp=1 is-live=1 ! video/x-raw,width={IMAGE_WIDTH},height={IMAGE_HEIGHT},format=BGR,framerate=30/1 ! videoconvert ! video/x-raw,format=I420 ! vtenc_h264_hw realtime=1 bitrate=2000 allow-frame-reordering=0 max-keyframe-interval=60 ! h264parse ! video/x-h264,alignment=au,stream-format=byte-stream ! appsink name=sink emit-signals=1 sync=0")
+            f"appsrc name=src do-timestamp=1 is-live=1 max-buffers=2 ! video/x-raw,width={IMAGE_WIDTH},height={IMAGE_HEIGHT},format=BGR,framerate=30/1 ! videoconvert ! video/x-raw,format=I420 ! vtenc_h264_hw realtime=1 bitrate=2000 allow-frame-reordering=0 max-keyframe-interval=60 ! h264parse ! video/x-h264,alignment=au,stream-format=byte-stream ! appsink name=sink emit-signals=1 sync=0")
         
         self.src = self.pipeline.get_by_name("src")
         sink = self.pipeline.get_by_name("sink")
@@ -79,6 +88,8 @@ class VideoEnc(Pipeline):
         return Gst.FlowReturn.OK
     
     def write_raw(self, buf):
+        if not self.is_playing:
+            return
         buf = Gst.Buffer.new_wrapped(buf.tobytes())
         self.src.emit("push-buffer", buf)
 
@@ -92,6 +103,7 @@ class VideoEnc(Pipeline):
 
 class VideoCap(Pipeline):
     def __init__(self) -> None:
+        super().__init__()
         self.pipeline = Gst.parse_launch(
             f"autovideosrc sync=0 ! videoconvert ! video/x-raw,width={IMAGE_WIDTH},height={IMAGE_HEIGHT},format=BGR ! appsink name=rawsink emit-signals=1 sync=0")
 
@@ -129,6 +141,7 @@ class VideoCap(Pipeline):
 
 class VideoDec(Pipeline):
     def __init__(self) -> None:
+        super().__init__()
         self.pipeline = Gst.parse_launch(
             "appsrc name=src do-timestamp=1 is-live=1 ! h264parse ! avdec_h264 ! videoconvert ! video/x-raw,format=BGR ! appsink name=sink emit-signals=1 sync=0")
 
@@ -137,7 +150,7 @@ class VideoDec(Pipeline):
 
         self.sink.connect("new-sample", self.__new_frame, self.sink)
 
-        self.raw_queue = queue.Queue(10)
+        self.raw_queue = queue.Queue(2)
 
     def write_h264(self, buf):
         buf = Gst.Buffer.new_wrapped(buf)
