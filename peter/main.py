@@ -62,10 +62,13 @@ async def local_position_worker(queue: asyncio.Queue, player: Hand, ball: Ball, 
     x_history = [-1, -1, -1]
     y_history = [-1, -1, -1]
     if is_hand:
-        with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+        with mp_hands.Hands(model_complexity=1, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
             while True:
                 frame = await queue.get() 
-                frame = cv2.resize(frame, (160, 120))
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+                print("frame get")
+                # frame = cv2.resize(frame, (320, 240))
                 if i % 2 == 0:
                     results = hands.process(frame)
 
