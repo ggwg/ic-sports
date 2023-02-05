@@ -2,6 +2,7 @@ import json
 import websockets
 import asyncio
 import traceback
+from contextlib import suppress
 
 
 class Busy(Exception):
@@ -28,7 +29,8 @@ class Remote:
             async for msg in websocket:
                 if isinstance(msg, bytes):
                     # H264 stream
-                    self.h264_queue.put_nowait(msg)
+                    with suppress(asyncio.queues.QueueFull):
+                        self.h264_queue.put_nowait(msg)
                 else:
                     # Control message
                     msg = json.loads(msg)
