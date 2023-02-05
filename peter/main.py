@@ -5,7 +5,7 @@ import traceback
 import asyncio
 import cv2
 import sys
-from contextlib import suppress
+from contextlib import suppress, contextmanager
 from typing import Sequence
 from dataclasses import dataclass
 from ball_motion import Ball, draw, hand_meets_ball
@@ -15,6 +15,14 @@ import pickle
 
 import mediapipe as mp
 mp_pose = mp.solutions.pose
+
+
+@contextmanager
+def dummy_resource():
+    try:
+        yield None
+    finally:
+        pass
 
 
 @dataclass
@@ -36,7 +44,7 @@ async def video_transmitter_worker(remote: network.Remote, encoder: video.VideoE
     while True:
         try:
             frame = await encoder.read_h264_async()
-            print("got h264 frame")
+            # print("got h264 frame")
             await remote.send_h264_frame(frame)
         except Exception as e:
             print("Error in transmitter worker:", e)
@@ -169,15 +177,12 @@ async def main():
 
     encoder = video.VideoEnc(is_server=(client_or_server == "server"))
 
-    if client_or_server == "client":
-        encoder.run()
-
     frame_queue = asyncio.Queue(1)
     frame_queue_2 = asyncio.Queue(1)
     hand = Hand(0, 0)
     ball = Ball(random.randint(100, 500), 300, 0)
 
-    with video.VideoDec() as decoder, video.VideoCap() as capture:
+    with video.VideoDec() as decoder, video.VideoCap() as capture, encoder if client_or_server == "client" else dummy_resource():
         def conn_on_cb(_):
             print("Connection on")
             encoder.run()
