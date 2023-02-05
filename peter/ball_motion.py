@@ -38,6 +38,8 @@ class Ball:
                 self.x += self.dx
             elif self.y < 300:
                 self.x += 2 * self.dx
+            elif self.y > self.frame_height * 2:
+                self.hit_back()
 
         self.z += self.dz
 
@@ -46,17 +48,17 @@ class Ball:
         return self.y > 350 and self.z > 20 and self.dz > 0
 
     def hit_back(self):
-        ball.dy = -10
-        # ball.y = 400
-        ball.dz = -ball.dz
-        # ball.z = 24 if ball.z > 0 else -24
+        self.dy = -10
+        # self.y = 400
+        self.dz = -self.dz
+        # self.z = 24 if self.z > 0 else -24
 
-        if ball.x < 80:
-            ball.dx = 0.2
-        elif ball.x > self.frame_width - 80:
-            ball.dx = -0.2
+        if self.x < 80:
+            self.dx = 0.2
+        elif self.x > self.frame_width - 80:
+            self.dx = -0.2
         else:
-            ball.dx = random.random() * 1.5 - 0.75
+            self.dx = random.random() * 1.5 - 0.75
 
     def __repr__(self) -> str:
         return f"{self.x:.2f}, {self.y:.2f}, {self.z:.2f}"

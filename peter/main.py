@@ -132,10 +132,11 @@ async def server_logic_loop(ball: Ball, remote: network.Remote, hand):
     while True:
         try:
             await asyncio.sleep(0.02)
-            ball.update_pos()
-            asyncio.create_task(remote.send_control([ball.x, ball.y, -ball.z]))
-            if ball.hitable and hand_meets_ball(ball, hand):
-                ball.hit_back()
+            if remote.connected:
+                ball.update_pos()
+                asyncio.create_task(remote.send_control([ball.x, ball.y, -ball.z]))
+                if ball.hitable and hand_meets_ball(ball, hand):
+                    ball.hit_back()
         except Exception as e:
             traceback.print_exc()
             print("Error in server logic loop:", e)
@@ -158,7 +159,7 @@ async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec):
             frame = await decoder.read_raw_async()
             frame = cv2.flip(frame, 1)
             frame = draw(ball, frame)
-            print("ball pos: ", ball)
+            print("ball pos:", ball)
             cv2.circle(frame, (int(hand.x), int(hand.y)),
                        10, (0, 0, 255), -1)
             cv2.imshow("main", frame)
@@ -185,6 +186,8 @@ async def main():
     with video.VideoDec() as decoder, video.VideoCap() as capture, encoder if client_or_server == "client" else dummy_resource():
         def conn_on_cb(_):
             print("Connection on")
+            ball = Ball(random.randint(100, 500), 300, 0)
+
             encoder.run()
 
         def conn_off_cb(_):

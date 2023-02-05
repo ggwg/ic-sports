@@ -16,6 +16,7 @@ class Remote:
         self.ctrl_queue = asyncio.Queue(0)
         self.conn_on_cb = None
         self.conn_off_cb = None
+        self.connected = False
         print("super init")
 
     async def handle(self, websocket):
@@ -23,6 +24,7 @@ class Remote:
             raise Busy
 
         self.remote = websocket
+        self.connected = True
         if self.conn_on_cb:
             self.conn_on_cb(websocket)
 
@@ -46,6 +48,7 @@ class Remote:
             print(e)
         finally:
             print("client handling stopped $$$$$$")
+            self.connected = False
             if self.conn_off_cb:
                 self.conn_off_cb(websocket)
             self.remote = None
