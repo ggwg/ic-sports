@@ -7,6 +7,8 @@ from math import (sqrt)
 import os
 import random
 
+SAMPLE_PER_FRAME = 6
+
 class Ball:
     def __init__(self, x, y, z):
         self.x = x
@@ -84,38 +86,46 @@ background = cv2.resize(background, (500, 500))
 def loop(mp_drawing, mp_drawing_styles, mp_pose, cap):
     hand_x_history = [-1, -1, -1]
     hand_y_history = [-1, -1, -1]
+    sample_pos = 0
 
     ball = Ball(100, 400, 10)
     hand = Ball(100, 400, 10)
     ball.dz = 0.1
     while True:
-        with mp_pose.Pose(
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5) as pose:
-            if cap.isOpened():
-                success, image = cap.read()
-                if not success:
-                    print("Ignoring empty camera frame.")
-                else:
-                    results = pose.process(image)
 
-                    if results.pose_landmarks:
-                        hand_x_history.append(500 - int(results.pose_landmarks.landmark[0].x * 400))
-                        hand_y_history.append(320 + int(results.pose_landmarks.landmark[0].y * 400))
-                        
-                        hand_x_history.pop(0)
-                        hand_y_history.pop(0)
-                        
-                        # Exponentially weighted moving average
-                        hand.x = hand_x_history[0] * 0.161 + hand_x_history[1] * 0.296 + hand_x_history[2] * 0.544
-                        hand.y = hand_y_history[0] * 0.161 + hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
-                        
-                        
-                        
-                        print(hand.x, hand.y)
-                        # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
+        sample_pos += 1 
+        if sample_pos == SAMPLE_PER_FRAME:
+            with mp_pose.Pose(
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5) as pose:
+                if cap.isOpened():
+                    success, image = cap.read()
+                    if not success:
+                        print("Ignoring empty camera frame.")
+                    else:
+                        results = pose.process(image)
+
+                        if results.pose_landmarks:
+                            hand_x_history.append(500 - int(results.pose_landmarks.landmark[0].x * 400))
+                            hand_y_history.append(320 + int(results.pose_landmarks.landmark[0].y * 400))
+                            
+                            hand_x_history.pop(0)
+                            hand_y_history.pop(0)
+                            
+                            # Exponentially weighted moving average
+                            hand.x = hand_x_history[0] * 0.161 + hand_x_history[1] * 0.296 + hand_x_history[2] * 0.544
+                            hand.y = hand_y_history[0] * 0.161 + hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
+                            
+                            
+                            
+                            print(hand.x, hand.y)
+                            # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
+            sample_pos = 0
+
+        
 
         image = draw(hand.x, hand.y, hand.z, background)
+        image = draw(ball.x, ball.y, ball.z, image)
         cv2.imshow("background", image)
         cv2.waitKey(1)
 
