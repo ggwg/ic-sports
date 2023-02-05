@@ -188,20 +188,8 @@ def loop(pose, mp_pose, cap):
                         hand_x_history.pop(0)
                         hand_y_history.pop(0)
                         
-                        # Exponentially weighted moving average
-                        # hand.x = hand_x_history[0] * 0.161 + hand_x_history[1] * 0.296 + hand_x_history[2] * 0.544
-                        # hand.y = hand_y_history[0] * 0.161 + hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
-                        
-                        
-                        
                         print(hand.x, hand.y)
-                        # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
-
-
         
-
-        # image = draw(hand.x, hand.y, hand.z, background)
-        # image = draw(ball.x, ball.y, ball.z, hand, image)
         image = draw(ball.x, ball.y, ball.z, hand, background)
         cv2.imshow("background", image)
         cv2.waitKey(1)
