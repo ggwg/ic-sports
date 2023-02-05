@@ -133,6 +133,7 @@ ball_images = [
 iteration = 0
 def draw(ball: Ball, background):
     global iteration
+    global ball_images
     iteration += 1
     x, y, z = ball.x, ball.y, ball.z
     radius = ball.display_radius
