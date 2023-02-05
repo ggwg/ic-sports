@@ -79,7 +79,7 @@ def hit_back(ball):
 
     if ball.x < 100:
         ball.dx = 0.2
-    elif ball.x > 350:
+    elif ball.x > 500:
         ball.dx = -0.2
     else:
         ball.dx = random.random() * 0.6 - 0.3

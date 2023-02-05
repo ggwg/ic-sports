@@ -159,8 +159,9 @@ async def main():
                                 asyncio.create_task(remote.send_control({"is_hit_back": True}))
                         frame = draw(ball.x, ball.y, ball.z, frame)
                         print(ball.x, ball.y, ball.z)
+                        cv2.circle(frame, (int(hand.x), int(hand.y)), 10, (0, 0, 255), -1)
                         cv2.imshow("main", frame)
-                        cv2.waitKey(1)
+                        cv2.waitKey(100)
                     except Exception as e:
                         print("Error in remote render worker:", e)
                     # frame = await frame_queue_2.get()
