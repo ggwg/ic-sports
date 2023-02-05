@@ -114,6 +114,4 @@ def loop():
             ball.dz = -ball.dz
 
 
-
-
 loop()
