@@ -156,12 +156,28 @@ class VideoThread(QThread):
         self._run_flag = False
         self.finished.emit()
 
+class Side(enum.Enum):
+    A = 0
+    B = 1
+
+class Ball:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.dx = 0
+        self.dy = 0
+        self.dz = 0
+        self.ddy = 0.01
 
 class App(QWidget):
     def __init__(self):
         super().__init__()
+        self.net_image = np.zeros((500, 500, 3), np.uint8)
+        self.net_image[250:500, 0:500] = (100, 100, 100)
+
         self.setWindowTitle("Testing")
-        size_ratio = 1
+        size_ratio = 0.6
         self.disply_width = 640 * size_ratio
         self.display_height = 480 * size_ratio
         
@@ -172,6 +188,20 @@ class App(QWidget):
         self.image_label = QLabel(self)
         self.image_label.setPixmap(self.roundedCorners(self.placeholder))
         self.image_label.resize(self.disply_width, self.display_height)
+
+        self.hand = Ball(100, 100, 10)
+        self.hand.dz = 0.1
+        background = np.zeros((500, 500, 3), np.uint8)
+        radius = 3 * math.sqrt(abs(self.hand.y)) + 2 * self.hand.z
+        image = self.draw(self.hand.x, self.hand.y, self.hand.z, radius, (255, 255, 255), background)
+        print(self.hand.x, self.hand.y, self.hand.z, self.hand.dx, self.hand.dy, self.hand.dz)
+        
+        # Game placeholder (Starting Frame)
+        self.game_placeholder = self.convert_cv_qt(image)
+        # Create the gameplay screen
+        self.game_label = QLabel(self)
+        self.game_label.setPixmap(self.roundedCorners(self.game_placeholder))
+        self.game_label.resize(self.disply_width, self.display_height)
         
         # Create a text label
         self.text_label = QLabel('Label')
@@ -186,11 +216,22 @@ class App(QWidget):
         # Create a vertical box layout and add the two labels
         vbox = QVBoxLayout()
         vbox.addWidget(self.image_label)
+        vbox.addWidget(self.game_label)
         vbox.addWidget(self.text_label)
         vbox.addWidget(self.capture_button)
         
         # Set the vbox layout as the widgets layout
         self.setLayout(vbox)   
+
+    def draw(self, x, y, z, radius, color, background):
+        if z > 0:
+            background += self.net_image
+            return cv2.circle(background, (int(x), int(y)), int(radius), color, -1)
+        else:
+            image = cv2.circle(background, (int(x), int(y)), int(radius), color, -1)
+            # overlay net image onto background
+            image = cv2.addWeighted(image,0.7,self.net_image,1.0,0)
+            return image
 
     def roundedCorners(self, pixmap):
         rounded = QPixmap(pixmap.size())
@@ -221,6 +262,24 @@ class App(QWidget):
     def closeEvent(self, event):
         self.thread.stop()
         event.accept()
+
+    @Slot(np.ndarray)
+    def update_hand(self, x, y):
+        self.hand = Ball(100, 100, 10)
+        image = self.draw(self.hand.x, self.hand.y, self.hand.z, radius, (255, 255, 255), background)
+        print(self.hand.x, self.hand.y, self.hand.z, self.hand.dx, self.hand.dy, self.hand.dz)
+        
+        # Game placeholder (Starting Frame)
+        self.game_placeholder = self.convert_cv_qt(image)
+        # Create the gameplay screen
+        self.game_label = QLabel(self)
+        self.game_label.setPixmap(self.roundedCorners(self.game_placeholder))
+        self.game_label.setPixmap(self.roundedCorners(self.game_placeholder))
+        background = np.zeros((500, 500, 3), np.uint8)
+        radius = 3 * sqrt(abs(ball.y)) + 2 * ball.z
+        image = draw(ball.x, ball.y, ball.z, radius, (255, 255, 255), background)
+        print(ball.x, ball.y, ball.z, ball.dx, ball.dy, ball.dz)
+        cv2.imshow("background", image)
 
     @Slot(np.ndarray)
     def update_image(self, cv_img):
