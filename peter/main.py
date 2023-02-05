@@ -29,6 +29,7 @@ def dummy_resource():
 class Hand:
     x: int
     y: int
+    hit: bool
 
 
 async def h264_decode_worker(remote: network.Remote, decoder: video.VideoDec):
@@ -60,7 +61,7 @@ async def remote_render_worker(decoder: video.VideoDec):
             print("Error in remote render worker:", e)
 
 
-async def local_position_worker(queue: asyncio.Queue, hand):
+async def local_position_worker(queue: asyncio.Queue, hand: Hand, ball: Ball, remote: network.Remote):
     i = 0
     hand_x_history = [-1, -1, -1]
     hand_y_history = [-1, -1, -1]
@@ -87,6 +88,13 @@ async def local_position_worker(queue: asyncio.Queue, hand):
                         hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
 
                     print(f"Hand position: {hand.x:.2f}, {hand.y:.2f}")
+                    if ball.hitable and hand_meets_ball(ball, hand):
+                        print("Hand hits ball")
+                        hand.hit = True
+                        asyncio.create_task(remote.send_control(
+                            [ball.x, ball.y, -ball.z]))
+                    else:
+                        hand.hit = False
                     # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
             i += 1
 
@@ -134,7 +142,8 @@ async def server_logic_loop(ball: Ball, remote: network.Remote, hand):
             await asyncio.sleep(0.02)
             if remote.connected:
                 ball.update_pos()
-                asyncio.create_task(remote.send_control([ball.x, ball.y, -ball.z]))
+                asyncio.create_task(remote.send_control(
+                    [ball.x, ball.y, -ball.z]))
                 if ball.hitable and hand_meets_ball(ball, hand):
                     ball.hit_back()
         except Exception as e:
@@ -142,15 +151,15 @@ async def server_logic_loop(ball: Ball, remote: network.Remote, hand):
             print("Error in server logic loop:", e)
 
 
-async def client_logic_loop(ball: Ball, remote: network.Remote, hand):
-    while True:
-        try:
-            ball.x, ball.y, ball.z = await remote.recv_control()
-            if ball.hitable and hand_meets_ball(ball, hand):
-                asyncio.create_task(remote.send_control(
-                    [ball.x, ball.y, -ball.z]))
-        except Exception as e:
-            print("Error in client logic loop:", e)
+# async def client_logic_loop(ball: Ball, remote: network.Remote, hand):
+#     while True:
+#         try:
+#             ball.x, ball.y, ball.z = await remote.recv_control()
+#             if ball.hitable and hand_meets_ball(ball, hand):
+#                 asyncio.create_task(remote.send_control(
+#                     [ball.x, ball.y, -ball.z]))
+#         except Exception as e:
+#             print("Error in client logic loop:", e)
 
 
 async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec):
@@ -160,8 +169,9 @@ async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec):
             frame = cv2.flip(frame, 1)
             frame = draw(ball, frame)
             print("ball pos:", ball)
+            color = (0, 0, 255) if not hand.hit else (255, 0, 0)
             cv2.circle(frame, (int(hand.x), int(hand.y)),
-                       10, (0, 0, 255), -1)
+                       10, color, -1)
             cv2.imshow("main", frame)
             cv2.waitKey(1)
         except Exception as e:
@@ -180,7 +190,7 @@ async def main():
 
     frame_queue = asyncio.Queue(1)
     frame_queue_2 = asyncio.Queue(1)
-    hand = Hand(0, 0)
+    hand = Hand(0, 0, False)
     ball = Ball(random.randint(100, 500), 300, 0)
 
     with video.VideoDec() as decoder, video.VideoCap() as capture, encoder if client_or_server == "client" else dummy_resource():
@@ -205,13 +215,14 @@ async def main():
             asyncio.create_task(h264_encode_worker(frame_queue, encoder))
             asyncio.create_task(frame_queue_tee(
                 capture, (frame_queue, frame_queue_2)))
-            asyncio.create_task(local_position_worker(frame_queue_2, hand))
+            asyncio.create_task(local_position_worker(
+                frame_queue_2, hand, ball, remote))
             if client_or_server == "server":
                 asyncio.create_task(server_ctrl_loop(remote, ball))
                 asyncio.create_task(server_logic_loop(ball, remote, hand))
             else:
                 asyncio.create_task(client_ctrl_loop(remote, ball))
-                asyncio.create_task(client_logic_loop(ball, remote, hand))
+                # asyncio.create_task(client_logic_loop(ball, remote, hand))
 
             asyncio.create_task(remote_render_worker(ball, hand, decoder))
 
