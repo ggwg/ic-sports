@@ -15,6 +15,7 @@ import pickle
 
 import mediapipe as mp
 mp_pose = mp.solutions.pose
+mp_hands = mp.solutions.hands
 
 
 @contextmanager
@@ -56,43 +57,76 @@ async def video_transmitter_worker(remote: network.Remote, encoder: video.VideoE
             print("Error in transmitter worker:", e)
 
 
-async def local_position_worker(queue: asyncio.Queue, hand: Hand, ball: Ball, remote: network.Remote):
+async def local_position_worker(queue: asyncio.Queue, player: Hand, ball: Ball, remote: network.Remote, is_hand=False):
     i = 0
-    hand_x_history = [-1, -1, -1]
-    hand_y_history = [-1, -1, -1]
-    with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
-        while True:
-            frame = await queue.get()
-            frame = cv2.resize(frame, (160, 120))
-            if i % 2 == 0:
-                results = pose.process(frame)
+    x_history = [-1, -1, -1]
+    y_history = [-1, -1, -1]
+    if is_hand:
+        with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+            while True:
+                frame = await queue.get() 
+                frame = cv2.resize(frame, (160, 120))
+                if i % 2 == 0:
+                    results = hands.process(frame)
 
-                if results.pose_landmarks:
-                    hand_x_history.append(
-                        640 - int(results.pose_landmarks.landmark[0].x * 700))
-                    hand_y_history.append(
-                        50 + int(results.pose_landmarks.landmark[0].y * 400))
+                    if results.multi_hand_landmarks:
+                        hand_landmarks = results.multi_hand_landmarks[-1]
+                        x_history.append(
+                                640 - int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * 700))
+                        y_history.append(
+                            50 + int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * 400))
+                            
+                        x_history.pop(0)
+                        y_history.pop(0)
 
-                    hand_x_history.pop(0)
-                    hand_y_history.pop(0)
+                        # Exponentially weighted moving average
+                        player.x = x_history[0] * 0.161 + \
+                            x_history[1] * 0.296 + x_history[2] * 0.544
+                        player.y = y_history[0] * 0.161 + \
+                            y_history[1] * 0.296 + y_history[2] * 0.544
+                        print(f"HAND position: {player.x:.2f}, {player.y:.2f}")
+                        if ball.hitable and hand_meets_ball(ball, hand):
+                            print("Hand hits ball")
+                            player.hit = True
+                            asyncio.create_task(remote.send_control(
+                                [ball.x, ball.y, -ball.z, -ball.dz]))
+                            ball.hit_back()
+                        else:
+                            player.hit = False
+    else:
+        with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+            while True:
+                frame = await queue.get()
+                frame = cv2.resize(frame, (160, 120))
+                if i % 2 == 0:
+                    results = pose.process(frame)
 
-                    # Exponentially weighted moving average
-                    hand.x = hand_x_history[0] * 0.161 + \
-                        hand_x_history[1] * 0.296 + hand_x_history[2] * 0.544
-                    hand.y = hand_y_history[0] * 0.161 + \
-                        hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
+                    if results.pose_landmarks:
+                        x_history.append(
+                            640 - int(results.pose_landmarks.landmark[0].x * 700))
+                        y_history.append(
+                            50 + int(results.pose_landmarks.landmark[0].y * 400))
 
-                    print(f"Hand position: {hand.x:.2f}, {hand.y:.2f}")
-                    if ball.hitable and hand_meets_ball(ball, hand):
-                        print("Hand hits ball")
-                        hand.hit = True
-                        asyncio.create_task(remote.send_control(
-                            [ball.x, ball.y, -ball.z, -ball.dz]))
-                        ball.hit_back()
-                    else:
-                        hand.hit = False
-                    # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
-            i += 1
+                        x_history.pop(0)
+                        y_history.pop(0)
+
+                        # Exponentially weighted moving average
+                        player.x = x_history[0] * 0.161 + \
+                            x_history[1] * 0.296 + x_history[2] * 0.544
+                        player.y = y_history[0] * 0.161 + \
+                            y_history[1] * 0.296 + y_history[2] * 0.544
+
+                        print(f"HEAD position: {player.x:.2f}, {player.y:.2f}")
+                        if ball.hitable and hand_meets_ball(ball, player):
+                            print("Head hits ball")
+                            player.hit = True
+                            asyncio.create_task(remote.send_control(
+                                [ball.x, ball.y, -ball.z, -ball.dz]))
+                            ball.hit_back()
+                        else:
+                            player.hit = False
+                        # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
+                i += 1
 
 
 async def h264_encode_worker(queue: asyncio.Queue, encoder: video.VideoEnc):
