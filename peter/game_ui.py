@@ -209,7 +209,7 @@ async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec, 
             color = (0, 0, 255) if not hand.hit else (255, 0, 0)
             frame = alpha_composite_position(frame, guy_image, (int(hand.y), int(hand.x)))
             
-            cv2.putText(frame, f"{score.my}:{score.competitor}", (video.IMAGE_WIDTH, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+            cv2.putText(frame, f"{score.my}:{score.competitor}", (video.IMAGE_WIDTH // 2, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
             # cv2.imshow("main", frame)
             # cv2.waitKey(1)
             change_pixmap_signal.emit(frame)
