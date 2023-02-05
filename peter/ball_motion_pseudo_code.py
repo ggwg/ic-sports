@@ -75,7 +75,7 @@ def hit_back(ball):
     ball.dy = -2
     ball.y = 400
     ball.dz = -ball.dz
-    ball.z = 24
+    ball.z = 24 if ball.z > 0 else -24
 
     if ball.x < 100:
         ball.dx = 0.2
