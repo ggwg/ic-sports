@@ -31,6 +31,11 @@ class Hand:
     y: int
     hit: bool
 
+@dataclass
+class Score:
+    my: int = 0
+    competitor: int = 0
+
 
 async def h264_decode_worker(remote: network.Remote, decoder: video.VideoDec):
     while True:
@@ -137,30 +142,22 @@ async def client_ctrl_loop(remote: network.Remote, ball: Ball):
             print("Error in client ctrl loop:", e)
 
 
-async def server_logic_loop(ball: Ball, remote: network.Remote, hand):
+async def server_logic_loop(ball: Ball, remote: network.Remote, hand: Hand, score: Score):
     while True:
         try:
             await asyncio.sleep(0.02)
             if remote.connected:
-                ball.update_pos()
+                auto_hit_back = ball.update_pos()
+                if auto_hit_back:
+                    if ball.z > 0:
+                        score.competitor += 1
+                    else:
+                        score.my += 1
                 asyncio.create_task(remote.send_control(
                     [ball.x, ball.y, -ball.z, -ball.dz]))
-                # if ball.hitable and hand_meets_ball(ball, hand):
-                #     ball.hit_back()
         except Exception as e:
             traceback.print_exc()
             print("Error in server logic loop:", e)
-
-
-# async def client_logic_loop(ball: Ball, remote: network.Remote, hand):
-#     while True:
-#         try:
-#             ball.x, ball.y, ball.z = await remote.recv_control()
-#             if ball.hitable and hand_meets_ball(ball, hand):
-#                 asyncio.create_task(remote.send_control(
-#                     [ball.x, ball.y, -ball.z]))
-#         except Exception as e:
-#             print("Error in client logic loop:", e)
 
 
 async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec):
@@ -193,9 +190,11 @@ async def main():
     frame_queue_2 = asyncio.Queue(1)
     hand = Hand(0, 0, False)
     ball = Ball(random.randint(100, 500), 300, 0)
+    score = Score()
 
     with video.VideoDec() as decoder, video.VideoCap() as capture, encoder if client_or_server == "client" else dummy_resource():
         def conn_on_cb(_):
+            nonlocal ball
             print("Connection on")
             ball = Ball(random.randint(100, 500), 300, 0)
 
@@ -220,10 +219,9 @@ async def main():
                 frame_queue_2, hand, ball, remote))
             if client_or_server == "server":
                 asyncio.create_task(server_ctrl_loop(remote, ball))
-                asyncio.create_task(server_logic_loop(ball, remote, hand))
+                asyncio.create_task(server_logic_loop(ball, remote, hand, score))
             else:
                 asyncio.create_task(client_ctrl_loop(remote, ball))
-                # asyncio.create_task(client_logic_loop(ball, remote, hand))
 
             asyncio.create_task(remote_render_worker(ball, hand, decoder))
 

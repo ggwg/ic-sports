@@ -24,6 +24,7 @@ class Ball:
         return np.arctan2(50, -self.z + 50) * 50
 
     def update_pos(self):
+        auto_hit_back = False
         self.dy += self.ddy
         self.y += self.dy
 
@@ -39,9 +40,12 @@ class Ball:
             elif self.y < 300:
                 self.x += 2 * self.dx
             elif self.y > self.frame_height:
+                auto_hit_back = True
                 self.hit_back()
 
         self.z += self.dz
+        return auto_hit_back
+
 
     @property
     def hitable(self):
