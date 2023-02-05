@@ -78,40 +78,60 @@ print(filename)
 background = cv2.imread(filename)
 background = cv2.resize(background, (500, 500))
 
-# naturally fall down
+def hit_back(ball):
+    ball.dy = -2
+    if ball.x < 100:
+        ball.dx = 0.2
+    elif ball.x > 350:
+        ball.dx = -0.2
+    else:
+        ball.dx = random.random() * 0.6 - 0.3
+
+    ball.dz = -ball.dz
+
+def update_ball_position(ball):
+    ball.dy += ball.ddy
+    ball.y += ball.dy
+
+    if ball.y < 100:
+        pass
+    elif ball.y < 200:
+        ball.x += ball.dx
+    elif ball.y < 300:
+        ball.x += 2 * ball.dx
+
+    ball.z += ball.dz
+
+
+def capture_image_from_camera():
+    return background
+
+def get_video_frame_from_server():
+    return background
+
+def get_keypoints_from_my_image(image):
+    return []
+
 def loop():
     ball = Ball(100, 400, 10)
     ball.dz = 0.1
     while True:
-        # background = np.zeros((500, 500, 3), np.uint8)
-        image = draw(ball.x, ball.y, ball.z, background)
-        # print(ball.x, ball.y, ball.z, ball.dx, ball.dy, ball.dz)
         print(ball.x, ball.y, ball.z)
-        cv2.imshow("background", image)
-        cv2.waitKey(1)
 
-        ball.dy += ball.ddy
-        ball.y += ball.dy
 
-        if ball.y < 100:
-            pass
-        elif ball.y < 200:
-            ball.x += ball.dx
-        elif ball.y < 300:
-            ball.x += 2 * ball.dx
+        my_side_image = capture_image_from_camera()
+        other_side_image = get_video_frame_from_server()
 
-        ball.z += ball.dz
-
+        keypoints = get_keypoints_from_my_image(my_side_image)
+        
+        # should be done in server
+        update_ball_position(ball)
+        
         if ball.y > 400:
-            ball.dy = -2
-            if ball.x < 100:
-                ball.dx = 0.2
-            elif ball.x > 350:
-                ball.dx = -0.2
-            else:
-                ball.dx = random.random() * 0.6 - 0.3
-
-            ball.dz = -ball.dz
+            hit_back(ball)
+        image = draw(ball.x, ball.y, ball.z, other_side_image)
+        cv2.imshow("game", image)
+        cv2.waitKey(1)
 
 
 loop()
