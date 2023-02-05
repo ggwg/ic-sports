@@ -89,7 +89,8 @@ class VideoEnc(Pipeline):
         return Gst.FlowReturn.OK
     
     def write_raw(self, buf):
-        if self.is_stopped and self.is_server:
+        if self.is_stopped and self.is_server and False:
+            print("STOPPED")
             return
         buf = Gst.Buffer.new_wrapped(buf.tobytes())
         self.src.emit("push-buffer", buf)
