@@ -56,16 +56,6 @@ async def video_transmitter_worker(remote: network.Remote, encoder: video.VideoE
             print("Error in transmitter worker:", e)
 
 
-async def remote_render_worker(decoder: video.VideoDec):
-    while True:
-        try:
-            frame = await decoder.read_raw_async()
-            cv2.imshow("main", frame)
-            cv2.waitKey(1)
-        except Exception as e:
-            print("Error in remote render worker:", e)
-
-
 async def local_position_worker(queue: asyncio.Queue, hand: Hand, ball: Ball, remote: network.Remote):
     i = 0
     hand_x_history = [-1, -1, -1]

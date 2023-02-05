@@ -21,7 +21,7 @@ class Ball:
 
     @property
     def display_radius(self):
-        return np.arctan2(50, -self.z + 50) * 50
+        return np.arctan2(50, -self.z + 40) * 50
 
     def update_pos(self):
         auto_hit_back = False
@@ -132,6 +132,7 @@ ball_images = [
 
 iteration = 0
 def draw(ball: Ball, background):
+    global iteration
     iteration += 1
     x, y, z = ball.x, ball.y, ball.z
     radius = ball.display_radius
