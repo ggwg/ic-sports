@@ -11,7 +11,7 @@ from gi.repository import Gst
 
 Gst.init(None)
 
-executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 
 def common_gst_loop(bus):
     while True:
