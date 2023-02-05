@@ -54,8 +54,8 @@ async def local_postion_worker(queue: asyncio.Queue, hand):
                 results = pose.process(frame)
 
                 if results.pose_landmarks:
-                    hand_x_history.append(500 - int(results.pose_landmarks.landmark[0].x * 400))
-                    hand_y_history.append(320 + int(results.pose_landmarks.landmark[0].y * 400))
+                    hand_x_history.append(640 - int(results.pose_landmarks.landmark[0].x * 400))
+                    hand_y_history.append(int(results.pose_landmarks.landmark[0].y * 400))
                     
                     hand_x_history.pop(0)
                     hand_y_history.pop(0)
@@ -153,6 +153,7 @@ async def main():
                             update_ball_position(ball)
                             asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
                         frame = await decoder.read_raw_async()
+                        frame = cv2.flip(frame, 1)
                         # if hitable(ball) and hand_meet_ball(ball, hand):
                         if ball.y > 400:
                             if clientOrServer == "server":
@@ -164,7 +165,7 @@ async def main():
                         print("ball pos: ", ball.x, ball.y, ball.z)
                         cv2.circle(frame, (int(hand.x), int(hand.y)), 10, (0, 0, 255), -1)
                         cv2.imshow("main", frame)
-                        cv2.waitKey(50)
+                        cv2.waitKey(10)
                     except Exception as e:
                         print("Error in remote render worker:", e)
                     # frame = await frame_queue_2.get()
