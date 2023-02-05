@@ -55,7 +55,7 @@ async def local_postion_worker(queue: asyncio.Queue, hand):
 
                 if results.pose_landmarks:
                     hand_x_history.append(640 - int(results.pose_landmarks.landmark[0].x * 400))
-                    hand_y_history.append(int(results.pose_landmarks.landmark[0].y * 400))
+                    hand_y_history.append(30 + int(results.pose_landmarks.landmark[0].y * 400))
                     
                     hand_x_history.pop(0)
                     hand_y_history.pop(0)
@@ -154,8 +154,8 @@ async def main():
                             asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
                         frame = await decoder.read_raw_async()
                         frame = cv2.flip(frame, 1)
-                        # if hitable(ball) and hand_meet_ball(ball, hand):
-                        if ball.y > 400:
+                        if hitable(ball) and hand_meet_ball(ball, hand):
+                        # if ball.y > 400:
                             if clientOrServer == "server":
                                 hit_back(ball)
                             else:
