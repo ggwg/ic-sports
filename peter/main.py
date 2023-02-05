@@ -90,9 +90,7 @@ async def frame_queue_tee(capture: video.VideoCap, queues: Sequence[asyncio.Queu
 async def server_ctrl_loop(remote: network.Remote, ball):
     while True:
         try:
-            is_hit_back = (await remote.recv_control())["is_hit_back"]
-            if is_hit_back:
-                hit_back(ball)
+            ball.x, ball.y, ball.z = (await remote.recv_control()).values()
         except Exception as e:
             print("Error in server ctrl loop:", e)
 
@@ -160,12 +158,13 @@ async def main():
                             if clientOrServer == "server":
                                 hit_back(ball)
                             else:
-                                asyncio.create_task(remote.send_control({"is_hit_back": True}))
+                                hit_back(ball)
+                                asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
                         frame = draw(ball.x, ball.y, ball.z, frame)
                         print("ball pos: ", ball.x, ball.y, ball.z)
                         cv2.circle(frame, (int(hand.x), int(hand.y)), 10, (0, 0, 255), -1)
                         cv2.imshow("main", frame)
-                        cv2.waitKey(100)
+                        cv2.waitKey(30)
                     except Exception as e:
                         print("Error in remote render worker:", e)
                     # frame = await frame_queue_2.get()
