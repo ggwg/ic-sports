@@ -12,8 +12,8 @@ class Ball:
         self.z = z
         self.dx = 0
         self.dy = 0
-        self.dz = 0.05
-        self.ddy = 0.01
+        self.dz = 0.5
+        self.ddy = 0.1
 
 net_image = np.zeros((480, 640, 4), np.uint8)
 net_image[240:480, 0:640] = (100, 100, 100, 128)
@@ -73,6 +73,10 @@ def draw(x, y, z, background):
 
 def hit_back(ball):
     ball.dy = -2
+    ball.y = 400
+    ball.dz = -ball.dz
+    ball.z = 24
+
     if ball.x < 100:
         ball.dx = 0.2
     elif ball.x > 350:
@@ -83,8 +87,8 @@ def hit_back(ball):
     ball.dz = -ball.dz
 
 def update_ball_position(ball):
-    ball.dy += 2 * ball.ddy
-    ball.y +=  2 * ball.dy
+    ball.dy += ball.ddy
+    ball.y +=  ball.dy
 
     if ball.y < 100:
         pass
@@ -93,12 +97,12 @@ def update_ball_position(ball):
     elif ball.y < 300:
         ball.x += 2 * ball.dx
 
-    ball.z += 2 * ball.dz
+    ball.z += ball.dz
 
 
 
 def hitable(ball):
-    return ball.y > 350 and ball.z > 15
+    return ball.y > 375 and ball.z > 20
 
 def hand_meet_ball(ball, hand):
     return sqrt((hand.x - ball.x) ** 2 + (hand.y - ball.y) ** 2) < 30

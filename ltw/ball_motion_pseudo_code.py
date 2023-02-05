@@ -13,7 +13,7 @@ class Ball:
         self.dx = 0
         self.dy = 0
         self.dz = 0
-        self.ddy = 0.01
+        self.ddy = 0.1
 
 net_image = np.zeros((500, 500, 4), np.uint8)
 net_image[250:500, 0:500] = (100, 100, 100, 128)
@@ -79,7 +79,7 @@ background = cv2.imread(filename)
 background = cv2.resize(background, (500, 500))
 
 def hit_back(ball):
-    ball.dy = -2
+    ball.dy = -5
     if ball.x < 100:
         ball.dx = 0.2
     elif ball.x > 350:
@@ -113,8 +113,8 @@ def get_keypoints_from_my_image(image):
     return []
 
 def loop():
-    ball = Ball(100, 400, 10)
-    ball.dz = 0.1
+    ball = Ball(100, 400, 24)
+    ball.dz = 0.5
     while True:
         print(ball.x, ball.y, ball.z)
 
@@ -131,7 +131,7 @@ def loop():
             hit_back(ball)
         image = draw(ball.x, ball.y, ball.z, other_side_image)
         cv2.imshow("game", image)
-        cv2.waitKey(1)
+        cv2.waitKey(100)
 
 
 loop()
