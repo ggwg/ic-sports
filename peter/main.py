@@ -85,6 +85,24 @@ async def frame_queue_tee(capture: video.VideoCap, queues: Sequence[asyncio.Queu
         except Exception as e:
             print("Error in frame tee:", e)
 
+async def server_ctrl_loop(remote: network.Remote, ball):
+    while True:
+        try:
+            is_hit_back = (await remote.recv_control())["is_hit_back"]
+            if is_hit_back:
+                hit_back(ball)
+        except Exception as e:
+            print("Error in server ctrl loop:", e)
+
+async def client_ctrl_loop(remote: network.Remote, ball):
+    while True:
+        try:
+            ball.x, ball.y, ball.z = (await remote.recv_control()).values()
+        except Exception as e:
+            print("Error in client ctrl loop:", e)
+
+
+
 @dataclass
 class Hand:
     x: int
@@ -118,18 +136,18 @@ async def main():
                 asyncio.create_task(h264_encode_worker(frame_queue, encoder))
                 asyncio.create_task(frame_queue_tee(capture, (frame_queue, frame_queue_2)))
                 asyncio.create_task(local_postion_worker(frame_queue_2, hand))
+                if clientOrServer == "server":
+                    asyncio.create_task(server_ctrl_loop(remote, ball))
+                else:
+                    asyncio.create_task(client_ctrl_loop(remote, ball))
                 # asynio.create_task(remote_render_worker(decoder))
 
                 while True:
+                    print("$$$$$$$$$$$$$")
                     try:
                         if clientOrServer == "server":
                             update_ball_position(ball)
                             await remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z})
-                            is_hit_back = (await remote.get_control())["is_hit_back"]
-                            if is_hit_back:
-                                hit_back(ball)
-                        else:
-                            ball.x, ball.y, ball.z = (await remote.get_control()).values()
                         frame = await decoder.read_raw_async()
                         if hitable(ball) and hand_meet_ball(ball, hand):
                             if clientOrServer == "server":
@@ -137,6 +155,7 @@ async def main():
                             else:
                                 await remote.send_control({"is_hit_back": True})
                         frame = draw(ball.x, ball.y, ball.z, frame)
+                        print("here")
                         cv2.imshow("main", frame)
                         cv2.waitKey(1)
                     except Exception as e:
