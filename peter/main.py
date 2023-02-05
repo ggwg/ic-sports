@@ -158,6 +158,7 @@ async def main():
                             else:
                                 asyncio.create_task(remote.send_control({"is_hit_back": True}))
                         frame = draw(ball.x, ball.y, ball.z, frame)
+                        print(ball.x, ball.y, ball.z)
                         cv2.imshow("main", frame)
                         cv2.waitKey(1)
                     except Exception as e:

@@ -12,7 +12,7 @@ class Ball:
         self.z = z
         self.dx = 0
         self.dy = 0
-        self.dz = 0
+        self.dz = 0.05
         self.ddy = 0.01
 
 net_image = np.zeros((480, 640, 4), np.uint8)
