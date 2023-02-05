@@ -15,14 +15,12 @@ class Ball:
         self.dz = 0
         self.ddy = 0.01
 
-net_image = np.zeros((500, 500, 4), np.uint8)
-net_image[250:500, 0:500] = (100, 100, 100, 128)
+net_image = np.zeros((640, 480, 4), np.uint8)
+net_image[240:480, 0:640] = (100, 100, 100, 128)
 
 def alpha_composite(background, foreground):
     alpha = foreground[:, :, 3].astype(float) / 255.0
-
     image = np.empty(background.shape)
-
     for ch in range(3):
         image[:, :, ch] = foreground[:, :, ch] * alpha + background[:, :, ch] * (1.0 - alpha)
     image = image.astype(np.uint8)
@@ -72,11 +70,6 @@ def draw(x, y, z, background):
         background = alpha_composite_position(background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
         return alpha_composite(background, net_image)
 
-dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, 'background_place_holder.jpg')
-print(filename)
-background = cv2.imread(filename)
-background = cv2.resize(background, (500, 500))
 
 def hit_back(ball):
     ball.dy = -2
@@ -103,44 +96,10 @@ def update_ball_position(ball):
     ball.z += ball.dz
 
 
-def capture_image_from_camera():
-    return background
-
-def get_video_frame_from_server():
-    return background
-
-def get_keypoints_from_my_image(image):
-    return []
-
-def loop():
-    ball = Ball(100, 400, 10)
-    ball.dz = 0.1
-    while True:
-        print(ball.x, ball.y, ball.z)
-
-
-        my_side_image = capture_image_from_camera()
-        other_side_image = get_video_frame_from_server()
-
-        keypoints = get_keypoints_from_my_image(my_side_image)
-        
-        # should be done in server
-        update_ball_position(ball)
-        
-        if ball.y > 400:
-            hit_back(ball)
-        image = draw(ball.x, ball.y, ball.z, other_side_image)
-        cv2.imshow("game", image)
-        cv2.waitKey(1)
 
 def hitable(ball):
     return ball.y > 350 and ball.z > 15
 
 def hand_meet_ball(ball, hand):
-    hand_x, hand_y = hand.x, hand.y
-    ball.x, ball.y = ball.x, ball.y
-    return sqrt((hand_x - ball_x) ** 2 + (hand_y - ball_y) ** 2) < 30
+    return sqrt((hand.x - ball.x) ** 2 + (hand.y - ball.y) ** 2) < 30
 
-
-if __name__ == "__main__":
-    loop()
