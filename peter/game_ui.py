@@ -209,8 +209,6 @@ async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec, 
             color = (0, 0, 255) if not hand.hit else (255, 0, 0)
             frame = alpha_composite_position(frame, guy_image, (int(hand.x), int(hand.y)))
             
-            #  cv2.circle(frame, (int(hand.x), int(hand.y)), 10, color, -1)
-            # cv2.circle(frame, (int(hand.x), int(hand.y)), 10, color, -1)
             cv2.putText(frame, f"{score.my}:{score.competitor}", (video.IMAGE_WIDTH, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
             # cv2.imshow("main", frame)
             # cv2.waitKey(1)
@@ -260,7 +258,7 @@ async def main(change_pixmap_signal):
             asyncio.create_task(frame_queue_tee(
                 capture, (frame_queue, frame_queue_2)))
             asyncio.create_task(local_position_worker(
-                frame_queue_2, hand, ball, remote, is_hand=True))
+                frame_queue_2, hand, ball, remote, is_hand=False))
             if client_or_server == "server":
                 asyncio.create_task(server_ctrl_loop(remote, ball))
                 asyncio.create_task(server_logic_loop(ball, remote, hand, score))
