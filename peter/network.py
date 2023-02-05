@@ -14,6 +14,8 @@ class Remote:
         self.remote = None
         self.h264_queue = asyncio.Queue(10)
         self.ctrl_queue = asyncio.Queue(0)
+        self.conn_on_cb = None
+        self.conn_off_cb = None
         print("super init")
 
     async def handle(self, websocket):
@@ -21,11 +23,14 @@ class Remote:
             raise Busy
 
         self.remote = websocket
+        if self.conn_on_cb:
+            self.conn_on_cb(websocket)
 
         print("client handling started")
         print(websocket)
 
         try:
+            
             async for msg in websocket:
                 if isinstance(msg, bytes):
                     # H264 stream
@@ -41,6 +46,8 @@ class Remote:
             print(e)
         finally:
             print("client handling stopped $$$$$$")
+            if self.conn_off_cb:
+                self.conn_off_cb(websocket)
             self.remote = None
 
     async def get_h264_frame(self):
