@@ -24,3 +24,9 @@ python3 ltw/ball_motion_pseudo_code.py
 Old code is in /old_cv_project directory.
 
 # ic-sports
+
+dependencies
+
+```bash
+brew install gstreamer gst-plugins-bad gst-plugins-good gst-plugins-ugly gst-plugins-base gst-libav pygobject3
+```
