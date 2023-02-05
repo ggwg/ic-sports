@@ -6,6 +6,9 @@ import cv2
 import sys
 from contextlib import suppress
 from typing import Sequence
+from dataclasses import dataclass
+from ball_motion_pseudo_code import Ball, draw, update_ball_position, hit_back
+import random
 
 async def h264_decode_worker(remote: network.Remote, decoder: video.VideoDec):
     while True:
@@ -35,6 +38,32 @@ async def remote_render_worker(decoder: video.VideoDec):
         except Exception as e:
             print("Error in remote render worker:", e)
 
+async def local_postion_worker(queue: asyncio.Queue, hand):
+    i = 0
+    hand_x_history = [-1, -1, -1]
+    hand_y_history = [-1, -1, -1]
+    with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+        while True:
+            frame = await queue.get()
+            if i % 3 == 0:
+                results = pose.process(frame)
+
+                if results.pose_landmarks:
+                    hand_x_history.append(500 - int(results.pose_landmarks.landmark[0].x * 400))
+                    hand_y_history.append(320 + int(results.pose_landmarks.landmark[0].y * 400))
+                    
+                    hand_x_history.pop(0)
+                    hand_y_history.pop(0)
+                    
+                    # Exponentially weighted moving average
+                    hand.x = hand_x_history[0] * 0.161 + hand_x_history[1] * 0.296 + hand_x_history[2] * 0.544
+                    hand.y = hand_y_history[0] * 0.161 + hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
+                    
+                    print(hand.x, hand.y)
+                    # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
+            i += 1
+
+
 async def h264_encode_worker(queue: asyncio.Queue, encoder: video.VideoEnc):
     while True:
         try:
@@ -53,15 +82,25 @@ async def frame_queue_tee(capture: video.VideoCap, queues: Sequence[asyncio.Queu
         except Exception as e:
             print("Error in frame tee:", e)
 
+@dataclass
+class Hand:
+    x: int
+    y: int
+
+
 async def main():
     if sys.argv[1] == "client":
         remote = network.Client(sys.argv[2])
+        clientOrServer = "client"
     else:
         remote = network.Server()
+        clientOrServer = "server"
     
     encoder = video.VideoEnc()
     frame_queue = asyncio.Queue(1)
     frame_queue_2 = asyncio.Queue(1)
+    hand = Hand(0, 0)
+    ball = Ball(random.randint(100, 500), 400, -20)
 
     with video.VideoDec() as decoder:
         print("videodec init done")
@@ -73,14 +112,35 @@ async def main():
                 print("starting")
                 asyncio.create_task(h264_decode_worker(remote, decoder))
                 asyncio.create_task(video_transmitter_worker(remote, encoder))
-                asyncio.create_task(remote_render_worker(decoder))
                 asyncio.create_task(h264_encode_worker(frame_queue, encoder))
                 asyncio.create_task(frame_queue_tee(capture, (frame_queue, frame_queue_2)))
+                asyncio.create_task(local_postion_worker(frame_queue_2, hand))
+                # asynio.create_task(remote_render_worker(decoder))
 
                 while True:
-                    frame = await frame_queue_2.get()
+                    try:
+                        if clientOrServer == "server":
+                            update_ball_position(ball)
+                            await remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z})
+                            is_hit_back = await remote.get_control()["is_hit_back"]
+                            if is_hit_back:
+                                hit_back(ball)
+                        else:
+                            ball.x, ball.y, ball.z = (await remote.get_control()).values()
+                        frame = await decoder.read_raw_async()
+                        if hitable(ball) and hand_meet_ball(ball, hand):
+                            if clientOrServer == "server":
+                                hit_back(ball)
+                            else:
+                                await remote.send_control({"is_hit_back": True})
+                        frame = draw(ball.x, ball.y, ball.z, frame)
+                        cv2.imshow("main", frame)
+                        cv2.waitKey(1)
+                    except Exception as e:
+                        print("Error in remote render worker:", e)
+                    # frame = await frame_queue_2.get()
 
-                    cv2.imshow("local", frame)
+                    # cv2.imshow("local", frame)
                     cv2.waitKey(1)
 
                 await asyncio.Future()
