@@ -114,6 +114,6 @@ def hitable(ball):
     return ball.y > 350 and ball.z > 20 and ball.dz > 0
 
 def hand_meet_ball(ball, hand):
-    radius = find_radius
+    radius = find_radius(ball.z)
     return sqrt((hand.x - ball.x) ** 2 + (ball.y + radius - hand.y) ** 2) < 200
 
