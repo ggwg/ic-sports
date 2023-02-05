@@ -88,8 +88,8 @@ class VideoEnc(Pipeline):
         return Gst.FlowReturn.OK
     
     def write_raw(self, buf):
-        if not self.is_playing:
-            return
+        # if not self.is_playing:
+        #     return
         buf = Gst.Buffer.new_wrapped(buf.tobytes())
         self.src.emit("push-buffer", buf)
 
