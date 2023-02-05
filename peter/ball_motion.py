@@ -104,18 +104,37 @@ def alpha_composite_position(background, foreground, position):
 
 dirname = os.path.dirname(__file__)
 
-ball_image = cv2.imread(os.path.join(
-    dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
+# ball_image = cv2.imread(os.path.join(
+#     dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
 # print(ball_image.shape)
 # print(ball_image)
+ball_images = [
+    cv2.imread(os.path.join(dirname, "assets/1.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/2.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/3.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/4.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/5.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/6.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/7.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/8.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/9.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/10.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/11.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/12.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/13.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/14.png"), cv2.IMREAD_UNCHANGED),
+    cv2.imread(os.path.join(dirname, "assets/15.png"), cv2.IMREAD_UNCHANGED),
+]
 
-
+iteration = 0
 def draw(ball: Ball, background):
+    iteration += 1
     x, y, z = ball.x, ball.y, ball.z
     radius = ball.display_radius
     # print(radius)
     if z > 0:
         background = alpha_composite(background, net_image)
+        ball_image = ball_images[iteration % 15]
         ball_image_transfer = cv2.resize(
             ball_image, (int(radius * 2), int(radius * 2)))
         new_ball_image_x = max(x - radius, 0)
