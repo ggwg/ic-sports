@@ -91,6 +91,7 @@ async def server_ctrl_loop(remote: network.Remote, ball):
     while True:
         try:
             ball.x, ball.y, ball.z = (await remote.recv_control()).values()
+            hit_back(ball)
         except Exception as e:
             print("Error in server ctrl loop:", e)
 
