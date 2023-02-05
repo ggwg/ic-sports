@@ -159,7 +159,7 @@ class VideoDec(Pipeline):
         self.src.emit("push-buffer", buf)
 
     def __new_frame(self, sink, data):
-        print("Decoded new frame")
+        # print("Decoded new frame")
         sample = sink.emit("pull-sample")
         buf = sample.get_buffer()
         caps = sample.get_caps()
