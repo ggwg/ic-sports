@@ -15,7 +15,7 @@ class MainMenu(QMainWindow):
         self.setWindowTitle('Main Menu')
 
         # Create title
-        title = QLabel('My Virtual Space', self)
+        title = QLabel('I See Sports', self)
         title.setAlignment(Qt.AlignCenter)
         font = QFont()
         font.setPointSize(24)
