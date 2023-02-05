@@ -55,7 +55,7 @@ def alpha_composite_position(background, foreground, position):
 
 dirname = os.path.dirname(__file__)
 
-ball_image = cv2.imread(os.path.join(dirname, "ball.png"), cv2.IMREAD_UNCHANGED)
+ball_image = cv2.imread(os.path.join(dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
 head_image = cv2.imread(os.path.join(dirname, "asian.png"), cv2.IMREAD_UNCHANGED)
 
 def draw(x, y, z, head, background):
