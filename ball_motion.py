@@ -41,9 +41,10 @@ class Ball:
                 self.x += self.dx
             elif self.y < 300:
                 self.x += 2 * self.dx
-            elif self.y > self.frame_height - 10 or self.x < -5 or self.x > self.frame_width + 5 or self.z > 30:
-                auto_hit_back = True
-                self.hit_back()
+
+        if self.y > self.frame_height - 10 or self.x < -5 or self.x > self.frame_width + 5 or self.z > 30:
+            auto_hit_back = True
+            self.hit_back()
 
         self.z += self.dz
         return auto_hit_back
