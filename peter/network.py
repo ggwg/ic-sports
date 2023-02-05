@@ -60,12 +60,9 @@ class Remote:
             print(self.remote)
             print("remote none")
 
-    async def send_control(self, data: dict):
+    async def send_control(self, data):
         if self.remote:
             await self.remote.send(json.dumps(data))
-        else:
-            print(self.remote)
-            print("remote none control ********")
 
     async def recv_control(self):
         return await self.ctrl_queue.get()

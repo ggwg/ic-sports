@@ -1,0 +1,157 @@
+from enum import Enum
+import cv2
+import numpy as np
+from math import (sqrt)
+import os
+import random
+from video import IMAGE_HEIGHT, IMAGE_WIDTH
+
+
+class Ball:
+    def __init__(self, x, y, z, frame_height=IMAGE_HEIGHT, frame_width=IMAGE_WIDTH):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.dx = 0
+        self.dy = 0
+        self.dz = 0.5
+        self.ddy = 0.12
+        self.frame_height = frame_height
+        self.frame_width = frame_width
+
+    @property
+    def display_radius(self):
+        return np.arctan2(50, -self.z + 50) * 50
+
+    def update_pos(self):
+        self.dy += self.ddy
+        self.y += self.dy
+
+        if self.x < 80:
+            self.x += 0.5 * self.dx
+        elif self.x > self.frame_width - 80:
+            self.x += 0.5 * self.dx
+        else:
+            if self.y < 100:
+                pass
+            elif self.y < 200:
+                self.x += self.dx
+            elif self.y < 300:
+                self.x += 2 * self.dx
+
+        self.z += self.dz
+
+    @property
+    def hitable(self):
+        return self.y > 350 and self.z > 20 and self.dz > 0
+
+    def hit_back(self):
+        ball.dy = -10
+        # ball.y = 400
+        ball.dz = -ball.dz
+        # ball.z = 24 if ball.z > 0 else -24
+
+        if ball.x < 80:
+            ball.dx = 0.2
+        elif ball.x > self.frame_width - 80:
+            ball.dx = -0.2
+        else:
+            ball.dx = random.random() * 1.5 - 0.75
+
+    def __repr__(self) -> str:
+        return f"{self.x:.2f}, {self.y:.2f}, {self.z:.2f}"
+    
+    @property
+    def xyz(self) -> tuple:
+        return (self.x, self.y, self.z)
+
+
+net_image = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH, 4), np.uint8)
+net_image[IMAGE_HEIGHT // 2:IMAGE_HEIGHT, 0:IMAGE_WIDTH] = (100, 100, 100, 128)
+
+
+def alpha_composite(background, foreground):
+    alpha = foreground[:, :, 3].astype(float) / 255.0
+    image = np.empty(background.shape)
+    for ch in range(3):
+        image[:, :, ch] = foreground[:, :, ch] * \
+            alpha + background[:, :, ch] * (1.0 - alpha)
+    image = image.astype(np.uint8)
+    return image
+
+
+def alpha_composite_position(background, foreground, position):
+    alpha = foreground[:, :, 3].astype(float) / 255.0
+    image = np.copy(background)
+
+    x_from, y_from = position
+    im_x, im_y, *_ = image.shape
+    fore_x, fore_y, *_ = foreground.shape
+    x_to = min(x_from + fore_x, im_x)
+    y_to = min(y_from + fore_y, im_y)
+    diff_x, diff_y = (x_to - x_from, y_to - y_from)
+
+    for ch in range(3):
+        image[x_from:x_to, y_from:y_to, ch] = (
+            foreground[:diff_x, :diff_y, ch] * alpha[:diff_x, :diff_y]
+            + background[x_from:x_to, y_from:y_to, ch]
+            * (1.0 - alpha)[:diff_x, :diff_y])
+    image = image.astype(np.uint8)
+    return image
+
+
+dirname = os.path.dirname(__file__)
+
+ball_image = cv2.imread(os.path.join(
+    dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
+# print(ball_image.shape)
+# print(ball_image)
+
+
+def draw(ball: Ball, background):
+    x, y, z = ball.x, ball.y, ball.z
+    radius = ball.display_radius
+    # print(radius)
+    if z > 0:
+        background = alpha_composite(background, net_image)
+        ball_image_transfer = cv2.resize(
+            ball_image, (int(radius * 2), int(radius * 2)))
+        new_ball_image_x = max(x - radius, 0)
+        # new_ball_image_y = max(y - 2 * radius, 0)
+        new_ball_image_y = max(y - radius, 0)
+        background = alpha_composite_position(
+            background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
+        background = cv2.circle(
+            background, (int(x), int(y)), 10, (255, 255, 255), 1)
+        return background
+    else:
+        ball_image_transfer = cv2.resize(
+            ball_image, (int(radius * 2), int(radius * 2)))
+        new_ball_image_x = max(x - radius, 0)
+        # new_ball_image_y = max(y - 2 * radius, 0)
+        new_ball_image_y = max(y - radius, 0)
+        background = alpha_composite_position(
+            background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
+        background = alpha_composite(background, net_image)
+        background = cv2.circle(
+            background, (int(x), int(y)), 10, (255, 255, 255), 1)
+        return background
+
+
+def hand_meets_ball(ball: Ball, hand):
+    return sqrt((hand.x - ball.x) ** 2 + (ball.y - hand.y) ** 2) <= ball.display_radius
+
+
+if __name__ == "__main__":
+    bg_image = cv2.imread("background_place_holder.jpg", cv2.IMREAD_UNCHANGED)
+    bg_image = cv2.resize(bg_image, (IMAGE_WIDTH, IMAGE_HEIGHT))
+    ball = Ball(random.randint(100, 500), 300, 0)
+    while True:
+        ball.update_pos()
+        print("ball pos:", ball)
+        if ball.y > 480:
+            ball.hit_back()
+
+        frame = draw(ball, bg_image)
+        cv2.imshow("main", frame)
+        cv2.waitKey(10)
