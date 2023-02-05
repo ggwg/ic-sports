@@ -7,7 +7,7 @@ from math import (sqrt)
 import os
 import random
 
-SAMPLE_PER_FRAME = 6
+SAMPLE_PER_FRAME = 8
 
 class Ball:
     def __init__(self, x, y, z):
@@ -55,26 +55,34 @@ def alpha_composite_position(background, foreground, position):
 
 dirname = os.path.dirname(__file__)
 
-ball_image = cv2.imread(os.path.join(dirname, "head.png"), cv2.IMREAD_UNCHANGED)
-print(ball_image.shape)
-print(ball_image)
+ball_image = cv2.imread(os.path.join(dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
+head_image = cv2.imread(os.path.join(dirname, "head.png"), cv2.IMREAD_UNCHANGED)
 
-def draw(x, y, z, background):
+def draw(x, y, z, head, background):
     distance = -z + 50
     radius = 4000 / distance
+    
+    head_image_transfer = cv2.resize(head_image, (int(radius * 2), int(radius * 2)))
+    new_head_image_x = max(head.x - radius, 0)
+    new_head_image_y = max(head.y - 2 * radius, 0)
+    background = alpha_composite_position(background, head_image_transfer, (int(new_head_image_y), int(new_head_image_x)))
+
     if z > 0:
         background = alpha_composite(background, net_image)
         ball_image_transfer = cv2.resize(ball_image, (int(radius * 2), int(radius * 2)))
         new_ball_image_x = max(x - radius, 0)
         new_ball_image_y = max(y - 2 * radius, 0)
         background = alpha_composite_position(background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
-        return background
+        
     else:
         ball_image_transfer = cv2.resize(ball_image, (int(radius * 2), int(radius * 2)))
         new_ball_image_x = max(x - radius, 0)
         new_ball_image_y = max(y - 2 * radius, 0)
         background = alpha_composite_position(background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
-        return alpha_composite(background, net_image)
+        background = alpha_composite(background, net_image)
+
+   
+    return background
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'background_place_holder.jpg')
@@ -83,49 +91,118 @@ background = cv2.imread(filename)
 background = cv2.resize(background, (500, 500))
 
 # naturally fall down
-def loop(mp_drawing, mp_drawing_styles, mp_pose, cap):
-    hand_x_history = [-1, -1, -1]
-    hand_y_history = [-1, -1, -1]
-    sample_pos = 0
-
+def loop(pose, mp_pose, cap):
+    hand_x_history = [-1, -1, -1, -1, -1]
+    hand_y_history = [-1, -1, -1, -1, -1]
     ball = Ball(100, 400, 10)
     hand = Ball(100, 400, 10)
     ball.dz = 0.1
+
+    sample = 0
     while True:
+        sample += 1
+        if sample == SAMPLE_PER_FRAME // 4:
+            hand.x = statistics.fmean([
+                hand_x_history[0],
+                hand_x_history[1],
+                hand_x_history[2],
+                hand_x_history[3],
+                hand_x_history[4],
+            ])
+            hand.y = statistics.fmean([
+                hand_y_history[0],
+                hand_y_history[1],
+                hand_y_history[2],
+                hand_y_history[3],
+                hand_y_history[4],
+            ])
+        elif sample == SAMPLE_PER_FRAME // 2:
+            hand.x = statistics.fmean([
+                hand_x_history[0],
+                hand_x_history[1],
+                hand_x_history[2],
+                hand_x_history[3],
+                hand_x_history[4],
+                hand_x_history[4],
+            ])
+            hand.y = statistics.fmean([
+                hand_y_history[0],
+                hand_y_history[1],
+                hand_y_history[2],
+                hand_y_history[3],
+                hand_y_history[4],
+                hand_y_history[4],
+            ])
+        elif sample == 3*(SAMPLE_PER_FRAME // 4):
+            hand.x = statistics.fmean([
+                hand_x_history[0],
+                hand_x_history[1],
+                hand_x_history[2],
+                hand_x_history[3],
+                hand_x_history[4],
+                hand_x_history[4],
+                hand_x_history[4],
+            ])
+            hand.y = statistics.fmean([
+                hand_y_history[0],
+                hand_y_history[1],
+                hand_y_history[2],
+                hand_y_history[3],
+                hand_y_history[4],
+                hand_y_history[4],
+                hand_y_history[4],
+            ])
+        if sample == SAMPLE_PER_FRAME:
+            hand.x = statistics.fmean([
+                hand_x_history[0],
+                hand_x_history[1],
+                hand_x_history[2],
+                hand_x_history[3],
+                hand_x_history[4],
+                hand_x_history[4],
+                hand_x_history[4],
+                hand_x_history[4],
+            ])
+            hand.y = statistics.fmean([
+                hand_y_history[0],
+                hand_y_history[1],
+                hand_y_history[2],
+                hand_y_history[3],
+                hand_y_history[4],
+                hand_y_history[4],
+                hand_y_history[4],
+                hand_y_history[4],
+            ])
+            sample = 0
+            if cap.isOpened():
+                success, image = cap.read()
+                if not success:
+                    print("Ignoring empty camera frame.")
+                else:
+                    results = pose.process(image)
 
-        sample_pos += 1 
-        if sample_pos == SAMPLE_PER_FRAME:
-            with mp_pose.Pose(
-                min_detection_confidence=0.5,
-                min_tracking_confidence=0.5) as pose:
-                if cap.isOpened():
-                    success, image = cap.read()
-                    if not success:
-                        print("Ignoring empty camera frame.")
-                    else:
-                        results = pose.process(image)
+                    if results.pose_landmarks:
+                        hand_x_history.append(500 - int(results.pose_landmarks.landmark[0].x * 400))
+                        hand_y_history.append(320 + int(results.pose_landmarks.landmark[0].y * 400))
+                        
+                        hand_x_history.pop(0)
+                        hand_y_history.pop(0)
+                        
+                        # Exponentially weighted moving average
+                        # hand.x = hand_x_history[0] * 0.161 + hand_x_history[1] * 0.296 + hand_x_history[2] * 0.544
+                        # hand.y = hand_y_history[0] * 0.161 + hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
+                        
+                        
+                        
+                        print(hand.x, hand.y)
+                        # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
 
-                        if results.pose_landmarks:
-                            hand_x_history.append(500 - int(results.pose_landmarks.landmark[0].x * 400))
-                            hand_y_history.append(320 + int(results.pose_landmarks.landmark[0].y * 400))
-                            
-                            hand_x_history.pop(0)
-                            hand_y_history.pop(0)
-                            
-                            # Exponentially weighted moving average
-                            hand.x = hand_x_history[0] * 0.161 + hand_x_history[1] * 0.296 + hand_x_history[2] * 0.544
-                            hand.y = hand_y_history[0] * 0.161 + hand_y_history[1] * 0.296 + hand_y_history[2] * 0.544
-                            
-                            
-                            
-                            print(hand.x, hand.y)
-                            # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
-            sample_pos = 0
 
         
 
-        image = draw(hand.x, hand.y, hand.z, background)
-        image = draw(ball.x, ball.y, ball.z, image)
+        # image = draw(hand.x, hand.y, hand.z, background)
+        # image = draw(ball.x, ball.y, ball.z, hand, image)
+        image = draw(ball.x, ball.y, ball.z, hand, background)
         cv2.imshow("background", image)
         cv2.waitKey(1)
 
@@ -158,4 +235,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
 cap = cv2.VideoCapture(0)
-loop(mp_drawing, mp_drawing_styles, mp_pose, cap)
+with mp_pose.Pose(
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5) as pose:
+    loop(pose, mp_pose, cap)
