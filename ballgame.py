@@ -55,26 +55,34 @@ def alpha_composite_position(background, foreground, position):
 
 dirname = os.path.dirname(__file__)
 
-ball_image = cv2.imread(os.path.join(dirname, "head.png"), cv2.IMREAD_UNCHANGED)
-print(ball_image.shape)
-print(ball_image)
+ball_image = cv2.imread(os.path.join(dirname, "beach_ball.png"), cv2.IMREAD_UNCHANGED)
+head_image = cv2.imread(os.path.join(dirname, "head.png"), cv2.IMREAD_UNCHANGED)
 
-def draw(x, y, z, background):
+def draw(x, y, z, head, background):
     distance = -z + 50
     radius = 4000 / distance
+    
+    head_image_transfer = cv2.resize(head_image, (int(radius * 2), int(radius * 2)))
+    new_head_image_x = max(head.x - radius, 0)
+    new_head_image_y = max(head.y - 2 * radius, 0)
+    background = alpha_composite_position(background, head_image_transfer, (int(new_head_image_y), int(new_head_image_x)))
+
     if z > 0:
         background = alpha_composite(background, net_image)
         ball_image_transfer = cv2.resize(ball_image, (int(radius * 2), int(radius * 2)))
         new_ball_image_x = max(x - radius, 0)
         new_ball_image_y = max(y - 2 * radius, 0)
         background = alpha_composite_position(background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
-        return background
+        
     else:
         ball_image_transfer = cv2.resize(ball_image, (int(radius * 2), int(radius * 2)))
         new_ball_image_x = max(x - radius, 0)
         new_ball_image_y = max(y - 2 * radius, 0)
         background = alpha_composite_position(background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
-        return alpha_composite(background, net_image)
+        background = alpha_composite(background, net_image)
+
+   
+    return background
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'background_place_holder.jpg')
@@ -192,8 +200,9 @@ def loop(pose, mp_pose, cap):
 
         
 
-        image = draw(hand.x, hand.y, hand.z, background)
-        image = draw(ball.x, ball.y, ball.z, image)
+        # image = draw(hand.x, hand.y, hand.z, background)
+        # image = draw(ball.x, ball.y, ball.z, hand, image)
+        image = draw(ball.x, ball.y, ball.z, hand, background)
         cv2.imshow("background", image)
         cv2.waitKey(1)
 
