@@ -172,10 +172,10 @@ async def server_ctrl_loop(remote: network.Remote, ball: Ball):
             print("Error in server ctrl loop:", e)
 
 
-async def client_ctrl_loop(remote: network.Remote, ball: Ball):
+async def client_ctrl_loop(remote: network.Remote, ball: Ball, score: Score):
     while True:
         try:
-            ball.x, ball.y, ball.z, ball.dz, a, b = await remote.recv_control()
+            ball.x, ball.y, ball.z, ball.dz, score.competitor, score.my = await remote.recv_control()
         except Exception as e:
             print("Error in client ctrl loop:", e)
 
@@ -192,13 +192,13 @@ async def server_logic_loop(ball: Ball, remote: network.Remote, hand: Hand, scor
                     else:
                         score.my += 1
                 asyncio.create_task(remote.send_control(
-                    [ball.x, ball.y, -ball.z, -ball.dz]))
+                    [ball.x, ball.y, -ball.z, -ball.dz, score.my, score.competitor]))
         except Exception as e:
             traceback.print_exc()
             print("Error in server logic loop:", e)
 
 
-async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec, change_pixmap_signal):
+async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec, score: Score, change_pixmap_signal):
     while True:
         try:
             frame = await decoder.read_raw_async()
@@ -210,6 +210,8 @@ async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec, 
             frame = alpha_composite_position(frame, guy_image, (int(hand.x), int(hand.y)))
             
             #  cv2.circle(frame, (int(hand.x), int(hand.y)), 10, color, -1)
+            # cv2.circle(frame, (int(hand.x), int(hand.y)), 10, color, -1)
+            cv2.putText(frame, f"{score.my}:{score.competitor}", (video.IMAGE_WIDTH, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
             # cv2.imshow("main", frame)
             # cv2.waitKey(1)
             change_pixmap_signal.emit(frame)
@@ -263,9 +265,9 @@ async def main(change_pixmap_signal):
                 asyncio.create_task(server_ctrl_loop(remote, ball))
                 asyncio.create_task(server_logic_loop(ball, remote, hand, score))
             else:
-                asyncio.create_task(client_ctrl_loop(remote, ball))
+                asyncio.create_task(client_ctrl_loop(remote, ball, score))
 
-            asyncio.create_task(remote_render_worker(ball, hand, decoder, change_pixmap_signal))
+            asyncio.create_task(remote_render_worker(ball, hand, decoder, score, change_pixmap_signal))
 
             await asyncio.Future()
 
