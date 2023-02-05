@@ -125,7 +125,7 @@ async def main():
     frame_queue = asyncio.Queue(1)
     frame_queue_2 = asyncio.Queue(1)
     hand = Hand(0, 0)
-    ball = Ball(random.randint(100, 500), 280, 22)
+    ball = Ball(random.randint(100, 500), 380, 22)
 
     with video.VideoDec() as decoder:
         print("videodec init done")
@@ -164,13 +164,12 @@ async def main():
                         print("ball pos: ", ball.x, ball.y, ball.z)
                         cv2.circle(frame, (int(hand.x), int(hand.y)), 10, (0, 0, 255), -1)
                         cv2.imshow("main", frame)
-                        cv2.waitKey(100)
+                        cv2.waitKey(50)
                     except Exception as e:
                         print("Error in remote render worker:", e)
                     # frame = await frame_queue_2.get()
 
                     # cv2.imshow("local", frame)
-                    cv2.waitKey(1)
 
                 await asyncio.Future()
 

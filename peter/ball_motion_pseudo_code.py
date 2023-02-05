@@ -72,7 +72,7 @@ def draw(x, y, z, background):
 
 
 def hit_back(ball):
-    ball.dy = -2
+    ball.dy = -5
     ball.y = 400
     ball.dz = -0.5 if ball.dz > 0 else 0.5
     ball.z = 24 if ball.z > 0 else -24
