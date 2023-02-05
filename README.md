@@ -43,3 +43,10 @@ Setting up PyQt5 (Graphical User Interface):
 ```bash
 pip install pyqt5 --config-settings --confirm-license= --verbose
 ```
+
+Solution found to missing package `gi`:
+
+```bash
+pip install homekit
+pip install pygobject
+```
