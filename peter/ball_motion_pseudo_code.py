@@ -83,8 +83,8 @@ def hit_back(ball):
     ball.dz = -ball.dz
 
 def update_ball_position(ball):
-    ball.dy += ball.ddy
-    ball.y += ball.dy
+    ball.dy += 2 * ball.ddy
+    ball.y +=  2 * ball.dy
 
     if ball.y < 100:
         pass
@@ -93,7 +93,7 @@ def update_ball_position(ball):
     elif ball.y < 300:
         ball.x += 2 * ball.dx
 
-    ball.z += ball.dz
+    ball.z += 2 * ball.dz
 
 
 

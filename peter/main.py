@@ -9,6 +9,7 @@ from typing import Sequence
 from dataclasses import dataclass
 from ball_motion_pseudo_code import Ball, draw, update_ball_position, hit_back, hitable, hand_meet_ball
 import random
+import time
 
 import mediapipe as mp
 mp_pose = mp.solutions.pose
@@ -144,19 +145,18 @@ async def main():
                 # asynio.create_task(remote_render_worker(decoder))
 
                 while True:
-                    print("$$$$$$$$$$$$$")
+                    print("$$$$$$$$$$$$$", time.time())
                     try:
                         if clientOrServer == "server":
                             update_ball_position(ball)
-                            await remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z})
+                            asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
                         frame = await decoder.read_raw_async()
                         if hitable(ball) and hand_meet_ball(ball, hand):
                             if clientOrServer == "server":
                                 hit_back(ball)
                             else:
-                                await remote.send_control({"is_hit_back": True})
+                                asyncio.create_task(remote.send_control({"is_hit_back": True}))
                         frame = draw(ball.x, ball.y, ball.z, frame)
-                        print("here")
                         cv2.imshow("main", frame)
                         cv2.waitKey(1)
                     except Exception as e:
