@@ -123,8 +123,11 @@ def draw(ball: Ball, background):
         new_ball_image_y = max(y - radius, 0)
         background = alpha_composite_position(
             background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
-        background = cv2.circle(
-            background, (int(x), int(y)), 10, (255, 255, 255), 1)
+        if ball.hitable:
+            color = (255, 0, 0)
+        else:
+            color = (255, 255, 255)
+        background = cv2.circle(background, (int(x), int(y)), 10, color, 1)
         return background
     else:
         ball_image_transfer = cv2.resize(
@@ -135,8 +138,11 @@ def draw(ball: Ball, background):
         background = alpha_composite_position(
             background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
         background = alpha_composite(background, net_image)
-        background = cv2.circle(
-            background, (int(x), int(y)), 10, (255, 255, 255), 1)
+        if ball.hitable:
+            color = (255, 0, 0)
+        else:
+            color = (255, 255, 255)
+        background = cv2.circle(background, (int(x), int(y)), 10, color, 1)
         return background
 
 

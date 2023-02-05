@@ -92,7 +92,8 @@ async def local_position_worker(queue: asyncio.Queue, hand: Hand, ball: Ball, re
                         print("Hand hits ball")
                         hand.hit = True
                         asyncio.create_task(remote.send_control(
-                            [ball.x, ball.y, -ball.z]))
+                            [ball.x, ball.y, -ball.z, -ball.dz]))
+                        ball.hit_back()
                     else:
                         hand.hit = False
                     # print('Average left hand pos: ' + str(hands_average[0]), str(hands_average[1]))
@@ -122,7 +123,7 @@ async def frame_queue_tee(capture: video.VideoCap, queues: Sequence[asyncio.Queu
 async def server_ctrl_loop(remote: network.Remote, ball: Ball):
     while True:
         try:
-            ball.x, ball.y, ball.z = await remote.recv_control()
+            ball.x, ball.y, ball.z, ball.dz = await remote.recv_control()
             ball.hit_back()
         except Exception as e:
             print("Error in server ctrl loop:", e)
@@ -131,7 +132,7 @@ async def server_ctrl_loop(remote: network.Remote, ball: Ball):
 async def client_ctrl_loop(remote: network.Remote, ball: Ball):
     while True:
         try:
-            ball.x, ball.y, ball.z = await remote.recv_control()
+            ball.x, ball.y, ball.z, ball.dz = await remote.recv_control()
         except Exception as e:
             print("Error in client ctrl loop:", e)
 
@@ -143,9 +144,9 @@ async def server_logic_loop(ball: Ball, remote: network.Remote, hand):
             if remote.connected:
                 ball.update_pos()
                 asyncio.create_task(remote.send_control(
-                    [ball.x, ball.y, -ball.z]))
-                if ball.hitable and hand_meets_ball(ball, hand):
-                    ball.hit_back()
+                    [ball.x, ball.y, -ball.z, -ball.dz]))
+                # if ball.hitable and hand_meets_ball(ball, hand):
+                #     ball.hit_back()
         except Exception as e:
             traceback.print_exc()
             print("Error in server logic loop:", e)
@@ -169,9 +170,9 @@ async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec):
             frame = cv2.flip(frame, 1)
             frame = draw(ball, frame)
             print("ball pos:", ball)
+
             color = (0, 0, 255) if not hand.hit else (255, 0, 0)
-            cv2.circle(frame, (int(hand.x), int(hand.y)),
-                       10, color, -1)
+            cv2.circle(frame, (int(hand.x), int(hand.y)), 10, color, -1)
             cv2.imshow("main", frame)
             cv2.waitKey(1)
         except Exception as e:
