@@ -18,7 +18,7 @@ IMAGE_HEIGHT = 480
 
 class Pipeline:
     def __init__(self) -> None:
-        self.is_playing = False
+        self.is_stopped = True
 
     def __gst_loop(self):
         bus = self.pipeline.get_bus()
@@ -39,10 +39,10 @@ class Pipeline:
             elif msg.type == Gst.MessageType.STATE_CHANGED:
                 if isinstance(msg.src, Gst.Pipeline):
                     old_state, new_state, pending_state = msg.parse_state_changed()
-                    if new_state == Gst.State.PLAYING:
-                        self.is_playing = True
+                    if new_state == Gst.State.NULL:
+                        self.is_stopped = False
                     else:
-                        self.is_playing = False
+                        self.is_stopped = True
 
                     print(("Pipeline state changed from %s to %s." %
                         (old_state.value_nick, new_state.value_nick)))
@@ -88,7 +88,7 @@ class VideoEnc(Pipeline):
         return Gst.FlowReturn.OK
     
     def write_raw(self, buf):
-        if not self.is_playing:
+        if self.is_stopped:
             return
         buf = Gst.Buffer.new_wrapped(buf.tobytes())
         self.src.emit("push-buffer", buf)
