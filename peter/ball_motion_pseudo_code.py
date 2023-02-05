@@ -84,8 +84,6 @@ def hit_back(ball):
     else:
         ball.dx = random.random() * 0.6 - 0.3
 
-    ball.dz = -ball.dz
-
 def update_ball_position(ball):
     ball.dy += ball.ddy
     ball.y +=  ball.dy
