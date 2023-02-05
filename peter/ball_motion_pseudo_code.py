@@ -62,13 +62,17 @@ def draw(x, y, z, background):
         new_ball_image_x = max(x - radius, 0)
         new_ball_image_y = max(y - 2 * radius, 0)
         background = alpha_composite_position(background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
+        background = cv2.circle(background, (int(x), int(y)), 10, (255, 255, 255), 1)
         return background
     else:
         ball_image_transfer = cv2.resize(ball_image, (int(radius * 2), int(radius * 2)))
         new_ball_image_x = max(x - radius, 0)
         new_ball_image_y = max(y - 2 * radius, 0)
         background = alpha_composite_position(background, ball_image_transfer, (int(new_ball_image_y), int(new_ball_image_x)))
-        return alpha_composite(background, net_image)
+        background = alpha_composite(background, net_image)
+        background = cv2.circle(background, (int(x), int(y)), 10, (255, 255, 255), 1)
+        return background
+
 
 
 def hit_back(ball):
