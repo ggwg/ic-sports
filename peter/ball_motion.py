@@ -21,7 +21,7 @@ class Ball:
 
     @property
     def display_radius(self):
-        return np.arctan2(50, -self.z + 40) * 50
+        return np.arctan2(50, -self.z + 30) * 50
 
     def update_pos(self):
         auto_hit_back = False
@@ -39,7 +39,7 @@ class Ball:
                 self.x += self.dx
             elif self.y < 300:
                 self.x += 2 * self.dx
-            elif self.y > self.frame_height:
+            elif self.y > self.frame_height - 10 or self.x < -5 or self.x > self.frame_width + 5 or self.z > 30:
                 auto_hit_back = True
                 self.hit_back()
 
@@ -131,6 +131,7 @@ ball_images = [
 ]
 
 guy_image = cv2.imread(os.path.join(dirname, "assets/asian.png"), cv2.IMREAD_UNCHANGED)
+guy_image = cv2.resize(guy_image, (30, 30))
 
 iteration = 0
 def draw(ball: Ball, background):
@@ -174,7 +175,7 @@ def draw(ball: Ball, background):
 
 
 def hand_meets_ball(ball: Ball, hand):
-    return sqrt((hand.x - ball.x) ** 2 + (ball.y - hand.y) ** 2) <= ball.display_radius
+    return sqrt((hand.x - ball.x) ** 2 + (ball.y - hand.y) ** 2) <= ball.display_radius * 1.5
 
 
 if __name__ == "__main__":
