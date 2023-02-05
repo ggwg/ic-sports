@@ -107,5 +107,5 @@ def hitable(ball):
     return ball.y > 375 and ball.z > 20 and ball.dz > 0
 
 def hand_meet_ball(ball, hand):
-    return sqrt((hand.x - ball.x) ** 2 + (hand.y - ball.y) ** 2) < 30
+    return sqrt((hand.x - ball.x) ** 2 + (hand.y - ball.y + 20) ** 2) < 50
 
