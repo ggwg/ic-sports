@@ -12,10 +12,10 @@ class MainMenu(QMainWindow):
         self.initUI()
         
     def initUI(self):
-        self.setWindowTitle('Main Menu')
+        self.setWindowTitle('I See Sports - Gameplay')
 
         # Create title
-        title = QLabel('My Virtual Space', self)
+        title = QLabel('I See Sports', self)
         title.setAlignment(Qt.AlignCenter)
         font = QFont()
         font.setPointSize(24)
@@ -30,7 +30,7 @@ class MainMenu(QMainWindow):
         image.resize(100, 100)
 
         # Create description
-        description = QLabel('This is a game about adventure and discovery. Click the start button to begin.', self)
+        description = QLabel('This is a game about connecting with friends virtually over the internet. Click the start button to begin.', self)
         description.setAlignment(Qt.AlignCenter)
         # description.setWordWrap(True)
         description.setMaximumWidth(500)
