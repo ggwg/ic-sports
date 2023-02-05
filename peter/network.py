@@ -1,6 +1,7 @@
 import json
 import websockets
 import asyncio
+import traceback
 
 
 class Busy(Exception):
@@ -20,16 +21,24 @@ class Remote:
 
         self.remote = websocket
 
+        print("client handling started")
+        print(websocket)
+
         try:
             async for msg in websocket:
                 if isinstance(msg, bytes):
                     # H264 stream
-                    await self.h264_queue.put_nowait(msg)
+                    self.h264_queue.put_nowait(msg)
                 else:
                     # Control message
                     msg = json.loads(msg)
                     await self.ctrl_queue.put(msg)
+        except Exception as e:
+            print("exception in client handling $$$$$$")
+            traceback.print_exc()
+            print(e)
         finally:
+            print("client handling stopped $$$$$$")
             self.remote = None
 
     async def get_h264_frame(self):
@@ -38,6 +47,9 @@ class Remote:
     async def send_h264_frame(self, data: bytes):
         if self.remote:
             await self.remote.send(data)
+        else:
+            print(self.remote)
+            print("remote none")
 
     async def send_control(self, data: dict):
         if self.remote:

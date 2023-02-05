@@ -40,7 +40,7 @@ def common_gst_loop(bus):
 class VideoCap:
     def __init__(self) -> None:
         self.pipeline = Gst.parse_launch(
-            "autovideosrc sync=0 ! tee name=raw ! queue ! vtenc_h264_hw realtime=1 bitrate=8000 ! h264parse ! video/x-h264,alignment=au,stream-format=byte-stream ! appsink name=h264sink emit-signals=1 sync=0 raw. ! queue ! videoconvert ! video/x-raw,format=BGR ! appsink name=rawsink emit-signals=1 sync=0")
+            "autovideosrc sync=0 ! tee name=raw ! queue ! vtenc_h264_hw realtime=1 bitrate=2000 ! h264parse ! video/x-h264,alignment=au,stream-format=byte-stream ! appsink name=h264sink emit-signals=1 sync=0 raw. ! queue ! videoconvert ! video/x-raw,format=BGR ! appsink name=rawsink emit-signals=1 sync=0")
 
         h264sink = self.pipeline.get_by_name("h264sink")
         rawsink = self.pipeline.get_by_name("rawsink")

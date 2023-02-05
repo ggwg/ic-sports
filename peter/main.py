@@ -19,6 +19,7 @@ async def video_transmitter_worker(remote: network.Remote, capture: video.VideoC
     while True:
         try:
             frame = await capture.read_h264_async()
+            print("got h264 frame")
             await remote.send_h264_frame(frame)
         except Exception as e:
             print("Error in transmitter worker:", e)
