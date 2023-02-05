@@ -137,10 +137,10 @@ def draw(ball: Ball, background):
     iteration += 1
     x, y, z = ball.x, ball.y, ball.z
     radius = ball.display_radius
+    ball_image = ball_images[(iteration // 3) % 15]
     # print(radius)
     if z > 0:
         background = alpha_composite(background, net_image)
-        ball_image = ball_images[iteration % 15]
         ball_image_transfer = cv2.resize(
             ball_image, (int(radius * 2), int(radius * 2)))
         new_ball_image_x = max(x - radius, 0)
