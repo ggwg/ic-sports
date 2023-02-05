@@ -13,8 +13,8 @@ Gst.init(None)
 
 executor = concurrent.futures.ThreadPoolExecutor(max_workers=8)    
 
-IMAGE_WIDTH = 1280
-IMAGE_HEIGHT = 720
+IMAGE_WIDTH = 640
+IMAGE_HEIGHT = 480
 
 class Pipeline:
     def __gst_loop(self):

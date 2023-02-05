@@ -15,7 +15,7 @@ class Ball:
         self.dz = 0
         self.ddy = 0.01
 
-net_image = np.zeros((640, 480, 4), np.uint8)
+net_image = np.zeros((480, 640, 4), np.uint8)
 net_image[240:480, 0:640] = (100, 100, 100, 128)
 
 def alpha_composite(background, foreground):

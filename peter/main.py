@@ -48,6 +48,7 @@ async def local_postion_worker(queue: asyncio.Queue, hand):
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
         while True:
             frame = await queue.get()
+            frame = cv2.resize(frame, (160, 120))
             if i % 3 == 0:
                 results = pose.process(frame)
 
