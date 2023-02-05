@@ -19,7 +19,7 @@ import sys
 from contextlib import suppress, contextmanager
 from typing import Sequence
 from dataclasses import dataclass
-from ball_motion import Ball, draw, hand_meets_ball
+from ball_motion import Ball, draw, hand_meets_ball, alpha_composite_position, guy_image
 import random
 import time
 import pickle
@@ -207,7 +207,9 @@ async def remote_render_worker(ball: Ball, hand: Hand, decoder: video.VideoDec, 
             print("ball pos:", ball)
 
             color = (0, 0, 255) if not hand.hit else (255, 0, 0)
-            cv2.circle(frame, (int(hand.x), int(hand.y)), 10, color, -1)
+            frame = alpha_composite_position(frame, guy_image, (int(hand.x), int(hand.y)))
+            
+            #  cv2.circle(frame, (int(hand.x), int(hand.y)), 10, color, -1)
             # cv2.imshow("main", frame)
             # cv2.waitKey(1)
             change_pixmap_signal.emit(frame)

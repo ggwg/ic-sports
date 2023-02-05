@@ -130,6 +130,8 @@ ball_images = [
     cv2.imread(os.path.join(dirname, "assets/15.png"), cv2.IMREAD_UNCHANGED),
 ]
 
+guy_image = cv2.imread(os.path.join(dirname, "assets/asian.png"), cv2.IMREAD_UNCHANGED)
+
 iteration = 0
 def draw(ball: Ball, background):
     global iteration
