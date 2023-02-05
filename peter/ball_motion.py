@@ -38,7 +38,7 @@ class Ball:
                 self.x += self.dx
             elif self.y < 300:
                 self.x += 2 * self.dx
-            elif self.y > self.frame_height * 2:
+            elif self.y > self.frame_height:
                 self.hit_back()
 
         self.z += self.dz
@@ -48,10 +48,10 @@ class Ball:
         return self.y > 350 and self.z > 20 and self.dz > 0
 
     def hit_back(self):
-        self.dy = -10
-        # self.y = 400
+        self.dy = -7
+        self.y = 400
         self.dz = -self.dz
-        # self.z = 24 if self.z > 0 else -24
+        self.z = 24 if self.z > 0 else -24
 
         if self.x < 80:
             self.dx = 0.2
