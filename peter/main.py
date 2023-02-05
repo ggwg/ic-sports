@@ -125,7 +125,7 @@ async def main():
     frame_queue = asyncio.Queue(1)
     frame_queue_2 = asyncio.Queue(1)
     hand = Hand(0, 0)
-    ball = Ball(random.randint(100, 500), 380, 22)
+    ball = Ball(random.randint(100, 500), 200, 0)
 
     with video.VideoDec() as decoder:
         print("videodec init done")
