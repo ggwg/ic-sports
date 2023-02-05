@@ -131,7 +131,7 @@ ball_images = [
 ]
 
 guy_image = cv2.imread(os.path.join(dirname, "assets/asian.png"), cv2.IMREAD_UNCHANGED)
-guy_image = cv2.resize(guy_image, (30, 30))
+guy_image = cv2.resize(guy_image, (80, 80))
 
 iteration = 0
 def draw(ball: Ball, background):
