@@ -34,14 +34,10 @@ async def remote_render_worker(decoder: video.VideoDec):
             print("Error in remote render worker:", e)
 
 
-def get_remote(is_server):
-    return network.Server() if is_server else network.Client()
-
-
-async def main(is_server: bool):
+async def main(remote: network.Remote):
     with video.VideoDec() as decoder:
         with video.VideoCap() as capture:
-            async with get_remote(is_server) as remote:
+            async with remote as remote:
                 asyncio.create_task(h264_decode_worker(remote, decoder))
                 asyncio.create_task(video_transmitter_worker(remote, capture))
                 asyncio.create_task(remote_render_worker(decoder))
@@ -51,6 +47,8 @@ async def main(is_server: bool):
 
 if __name__ == "__main__":
     if sys.argv[1] == "server":
-        asyncio.run(main(True))
+        remote = network.Server()
     else:
-        asyncio.run(main(False))
+        remote = network.Client(sys.argv[2])
+
+    asyncio.run(main(remote))

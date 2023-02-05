@@ -50,6 +50,7 @@ class Remote:
 class Server(Remote):
     def __init__(self, port: int = 8765) -> None:
         super().__init__()
+        self.port = port
         self.server = websockets.serve(self.__server_handle, "0.0.0.0", port)
 
     async def __server_handle(self, websocket):
@@ -60,6 +61,7 @@ class Server(Remote):
             await websocket.send(json.dumps({"status": "busy"}))
 
     async def __aenter__(self):
+        print(f"Server listening on {self.port}")
         await self.server.__aenter__()
         return self
 
