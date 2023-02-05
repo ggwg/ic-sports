@@ -85,7 +85,7 @@ async def local_position_worker(queue: asyncio.Queue, player: Hand, ball: Ball, 
                         player.y = y_history[0] * 0.161 + \
                             y_history[1] * 0.296 + y_history[2] * 0.544
                         print(f"HAND position: {player.x:.2f}, {player.y:.2f}")
-                        if ball.hitable and hand_meets_ball(ball, hand):
+                        if ball.hitable and hand_meets_ball(ball, player):
                             print("Hand hits ball")
                             player.hit = True
                             asyncio.create_task(remote.send_control(
