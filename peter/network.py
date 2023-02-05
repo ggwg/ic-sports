@@ -63,6 +63,7 @@ class Server(Remote):
     async def __aenter__(self):
         print(f"Server listening on {self.port}")
         await self.server.__aenter__()
+        print("done")
         return self
 
     async def __aexit__(self, a, b, c):

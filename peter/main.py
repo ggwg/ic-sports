@@ -34,21 +34,30 @@ async def remote_render_worker(decoder: video.VideoDec):
             print("Error in remote render worker:", e)
 
 
-async def main(remote: network.Remote):
+
+async def main():
+    if sys.argv[1] == "client":
+        remote = network.Client(sys.argv[2])
+    else:
+        remote = network.Server()
+
     with video.VideoDec() as decoder:
+        print("videodec init done")
         with video.VideoCap() as capture:
-            async with remote as remote:
+            print("videocap init done")
+            async with remote:
+                print("starting")
                 asyncio.create_task(h264_decode_worker(remote, decoder))
                 asyncio.create_task(video_transmitter_worker(remote, capture))
                 asyncio.create_task(remote_render_worker(decoder))
+
+                while True:
+                    frame = await capture.read_raw_async()
+                    cv2.imshow("local", frame)
+                    cv2.waitKey(1)
 
                 await asyncio.Future()
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "server":
-        remote = network.Server()
-    else:
-        remote = network.Client(sys.argv[2])
-
-    asyncio.run(main(remote))
+    asyncio.run(main())
