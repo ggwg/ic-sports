@@ -151,7 +151,8 @@ async def main():
                             update_ball_position(ball)
                             asyncio.create_task(remote.send_control({"x": ball.x, "y": ball.y, "z": -ball.z}))
                         frame = await decoder.read_raw_async()
-                        if hitable(ball) and hand_meet_ball(ball, hand):
+                        # if hitable(ball) and hand_meet_ball(ball, hand):
+                        if ball.y > 400:
                             if clientOrServer == "server":
                                 hit_back(ball)
                             else:
