@@ -13,16 +13,13 @@ class MainMenu(QMainWindow):
         
     def initUI(self):
         self.setWindowTitle('I See Sports - Gameplay')
-
         # Create title
         title = QLabel('I See Sports', self)
         title.setAlignment(Qt.AlignCenter)
         font = QFont()
         font.setPointSize(24)
         title.setFont(font)
-
-        # Create image
-        # loading image
+        # Create image and loading image
         image = QLabel(self)
         pixmap = QPixmap('assets/beach_ball.png').scaledToWidth(200)
         # adding image to label
